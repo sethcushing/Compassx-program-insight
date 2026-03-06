@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { loginWithCookie, dismissToasts } from '../fixtures/helpers';
 
-const APP_DOMAIN = 'project-copilot-ai-1.preview.emergentagent.com';
+const APP_DOMAIN = 'project-planner-ai-1.preview.emergentagent.com';
 
 test.describe('Landing Page', () => {
   test.beforeEach(async ({ page }) => {

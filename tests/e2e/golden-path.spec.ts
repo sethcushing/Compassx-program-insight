@@ -1,11 +1,20 @@
-import { test, expect } from '@playwright/test';
-import { dismissToasts } from '../fixtures/helpers';
+import { test, expect, Page } from '@playwright/test';
 
 const SESSION_TOKEN = 'test_session_1772823453557';
-const APP_DOMAIN = 'project-copilot-ai-1.preview.emergentagent.com';
-const BASE_API = 'https://project-copilot-ai-1.preview.emergentagent.com/api';
+const APP_DOMAIN = 'project-planner-ai-1.preview.emergentagent.com';
 
-async function authenticateAndGoto(page: any, path: string) {
+async function dismissToasts(page: Page) {
+  await page.addLocatorHandler(
+    page.locator('[data-sonner-toast], .Toastify__toast'),
+    async () => {
+      const close = page.locator('[data-sonner-toast] [data-close], .Toastify__close-button');
+      await close.first().click({ timeout: 2000 }).catch(() => {});
+    },
+    { times: 10, noWaitAfter: true }
+  );
+}
+
+async function authenticateAndGoto(page: Page, path: string) {
   await page.context().addCookies([{
     name: 'session_token',
     value: SESSION_TOKEN,
@@ -13,11 +22,11 @@ async function authenticateAndGoto(page: any, path: string) {
     path: '/',
     httpOnly: true,
     secure: true,
-    sameSite: 'None' as const
+    sameSite: 'None'
   }]);
   await page.goto(path);
   await page.waitForResponse(
-    (resp: any) => resp.url().includes('/api/auth/me') && resp.status() === 200,
+    (resp) => resp.url().includes('/api/auth/me') && resp.status() === 200,
     { timeout: 30000 }
   ).catch(() => {});
   await page.waitForLoadState('domcontentloaded');
@@ -52,6 +61,15 @@ test.describe('Golden Path - Full User Journey', () => {
     await expect(page.getByTestId('dashboard-main')).toBeVisible({ timeout: 30000 });
   });
 
+  test('authenticated user navigates to All Projects page', async ({ page }) => {
+    await authenticateAndGoto(page, '/dashboard');
+    await expect(page.getByTestId('sidebar')).toBeVisible({ timeout: 30000 });
+
+    await page.getByTestId('nav-projects').click();
+    await expect(page).toHaveURL('/projects');
+    await expect(page.getByTestId('all-projects-main')).toBeVisible({ timeout: 30000 });
+  });
+
   test('authenticated user navigates to Sprint Planner', async ({ page }) => {
     await authenticateAndGoto(page, '/dashboard');
     await expect(page.getByTestId('sidebar')).toBeVisible({ timeout: 30000 });
@@ -61,6 +79,15 @@ test.describe('Golden Path - Full User Journey', () => {
     await expect(page.getByTestId('sprint-planner-main')).toBeVisible({ timeout: 30000 });
   });
 
+  test('authenticated user navigates to Program View', async ({ page }) => {
+    await authenticateAndGoto(page, '/dashboard');
+    await expect(page.getByTestId('sidebar')).toBeVisible({ timeout: 30000 });
+
+    await page.getByTestId('nav-program').click();
+    await expect(page).toHaveURL('/program');
+    await expect(page.getByTestId('program-view-main')).toBeVisible({ timeout: 30000 });
+  });
+
   test('authenticated user navigates to Resources Manager', async ({ page }) => {
     await authenticateAndGoto(page, '/dashboard');
     await expect(page.getByTestId('sidebar')).toBeVisible({ timeout: 30000 });
@@ -68,15 +95,6 @@ test.describe('Golden Path - Full User Journey', () => {
     await page.getByTestId('nav-resources').click();
     await expect(page).toHaveURL('/resources');
     await expect(page.getByTestId('resource-manager-main')).toBeVisible({ timeout: 30000 });
-  });
-
-  test('authenticated user navigates to Portfolio', async ({ page }) => {
-    await authenticateAndGoto(page, '/dashboard');
-    await expect(page.getByTestId('sidebar')).toBeVisible({ timeout: 30000 });
-
-    await page.getByTestId('nav-portfolio').click();
-    await expect(page).toHaveURL('/portfolio');
-    await expect(page.getByTestId('portfolio-dashboard-main')).toBeVisible({ timeout: 30000 });
   });
 
   test('authenticated user accesses AI Copilot and can type message', async ({ page }) => {

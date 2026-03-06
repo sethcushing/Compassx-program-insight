@@ -1,0 +1,226 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - complementary [ref=e4]:
+        - link "CompassX" [ref=e6] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e8]
+          - generic [ref=e10]: CompassX
+        - navigation [ref=e11]:
+          - list [ref=e12]:
+            - listitem [ref=e13]:
+              - link "Dashboard" [ref=e14] [cursor=pointer]:
+                - /url: /dashboard
+                - img [ref=e15]
+                - generic [ref=e20]: Dashboard
+            - listitem [ref=e21]:
+              - link "All Projects" [ref=e22] [cursor=pointer]:
+                - /url: /projects
+                - img [ref=e23]
+                - generic [ref=e26]: All Projects
+            - listitem [ref=e27]:
+              - link "AI Creator" [ref=e28] [cursor=pointer]:
+                - /url: /create
+                - img [ref=e29]
+                - generic [ref=e31]: AI Creator
+            - listitem [ref=e32]:
+              - link "Sprint Board" [ref=e33] [cursor=pointer]:
+                - /url: /sprint
+                - img [ref=e34]
+                - generic [ref=e36]: Sprint Board
+            - listitem [ref=e37]:
+              - link "Resources" [ref=e38] [cursor=pointer]:
+                - /url: /resources
+                - img [ref=e39]
+                - generic [ref=e44]: Resources
+            - listitem [ref=e45]:
+              - link "Program View" [ref=e46] [cursor=pointer]:
+                - /url: /program
+                - img [ref=e47]
+                - generic [ref=e51]: Program View
+            - listitem [ref=e52]:
+              - link "AI Copilot" [ref=e53] [cursor=pointer]:
+                - /url: /copilot
+                - img [ref=e54]
+                - generic [ref=e56]: AI Copilot
+        - generic [ref=e57]:
+          - button "Dark Mode" [ref=e58] [cursor=pointer]:
+            - img [ref=e59]
+            - generic [ref=e61]: Dark Mode
+          - button "Logout" [ref=e62] [cursor=pointer]:
+            - img [ref=e63]
+            - generic [ref=e66]: Logout
+          - generic [ref=e67]:
+            - img "Test User" [ref=e68]
+            - generic [ref=e69]:
+              - paragraph [ref=e70]: Test User
+              - paragraph [ref=e71]: test.user.1772823453557@compassx.com
+      - main [ref=e72]:
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - heading "Welcome back, Test" [level=1] [ref=e75]
+            - paragraph [ref=e76]: Here's an overview of your project portfolio
+          - button "New Project" [ref=e78] [cursor=pointer]:
+            - img
+            - text: New Project
+        - generic [ref=e79]:
+          - generic [ref=e80]:
+            - img [ref=e83]
+            - generic [ref=e86]: "3"
+            - generic [ref=e87]: Total Projects
+            - generic [ref=e88]: 2 active
+          - generic [ref=e89]:
+            - generic [ref=e90]:
+              - img [ref=e92]
+              - generic [ref=e95]:
+                - img [ref=e96]
+                - generic [ref=e99]: 12 %
+            - generic [ref=e100]: "12"
+            - generic [ref=e101]: Tasks Done
+            - generic [ref=e102]: 9 in progress
+          - generic [ref=e103]:
+            - img [ref=e106]
+            - generic [ref=e108]: "3"
+            - generic [ref=e109]: At Risk
+            - generic [ref=e110]: milestones need attention
+          - generic [ref=e111]:
+            - img [ref=e114]
+            - generic [ref=e116]: "195"
+            - generic [ref=e117]: Story Points
+            - generic [ref=e118]: total in backlog
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]:
+                - heading "STORY POINTS" [level=3] [ref=e123]
+                - paragraph [ref=e124]: Total vs Completed
+              - generic [ref=e125]:
+                - generic [ref=e128]: Completed
+                - generic [ref=e131]: Total
+            - application [ref=e135]:
+              - generic [ref=e162]:
+                - generic [ref=e163]:
+                  - generic [ref=e165]: Sprint 3
+                  - generic [ref=e167]: Sprint 4
+                  - generic [ref=e169]: Sprint 1
+                  - generic [ref=e171]: Sprint 2
+                  - generic [ref=e173]: Sprint 3
+                  - generic [ref=e175]: Sprint 4
+                - generic [ref=e176]:
+                  - generic [ref=e178]: "0"
+                  - generic [ref=e180]: "6"
+                  - generic [ref=e182]: "12"
+                  - generic [ref=e184]: "18"
+                  - generic [ref=e186]: "24"
+          - generic [ref=e187]:
+            - generic [ref=e188]:
+              - heading "SPRINT BURNDOWN" [level=3] [ref=e189]
+              - paragraph [ref=e190]: Current Sprint
+            - application [ref=e194]:
+              - generic [ref=e207]:
+                - generic [ref=e208]:
+                  - generic [ref=e210]: Mon
+                  - generic [ref=e212]: Tue
+                  - generic [ref=e214]: Wed
+                  - generic [ref=e216]: Thu
+                  - generic [ref=e218]: Fri
+                - generic [ref=e219]:
+                  - generic [ref=e221]: "0"
+                  - generic [ref=e223]: "15"
+                  - generic [ref=e225]: "30"
+                  - generic [ref=e227]: "45"
+                  - generic [ref=e229]: "60"
+        - generic [ref=e230]:
+          - generic [ref=e231]:
+            - heading "TASK DISTRIBUTION" [level=3] [ref=e232]
+            - generic [ref=e233]:
+              - generic [ref=e235]:
+                - generic [ref=e236]: To Do
+                - generic [ref=e237]: "15"
+              - generic [ref=e241]:
+                - generic [ref=e242]: In Progress
+                - generic [ref=e243]: "9"
+              - generic [ref=e247]:
+                - generic [ref=e248]: In Review
+                - generic [ref=e249]: "0"
+              - generic [ref=e252]:
+                - generic [ref=e253]: Done
+                - generic [ref=e254]: "12"
+          - generic [ref=e257]:
+            - generic [ref=e258]:
+              - heading "ACTIVE PROJECTS" [level=3] [ref=e259]
+              - link "View All" [ref=e260] [cursor=pointer]:
+                - /url: /portfolio
+                - text: View All
+                - img [ref=e261]
+            - generic [ref=e263]:
+              - link "active Mobile App Launch Launch a new mobile banking application with AI-powered financial insights and seamless user experience. Progress 33 % 4 / 12 tasks 4 milestones" [ref=e264] [cursor=pointer]:
+                - /url: /project/proj_demo_35a011eb
+                - generic [ref=e265]:
+                  - generic [ref=e266]:
+                    - generic [ref=e269]: active
+                    - heading "Mobile App Launch" [level=3] [ref=e270]
+                    - paragraph [ref=e271]: Launch a new mobile banking application with AI-powered financial insights and seamless user experience.
+                  - img [ref=e272]
+                - generic [ref=e274]:
+                  - generic [ref=e275]:
+                    - generic [ref=e276]: Progress
+                    - generic [ref=e277]: 33 %
+                  - progressbar [ref=e278]
+                  - generic [ref=e280]:
+                    - generic [ref=e281]:
+                      - img [ref=e282]
+                      - generic [ref=e285]: 4 / 12 tasks
+                    - generic [ref=e286]:
+                      - img [ref=e287]
+                      - generic [ref=e291]: 4 milestones
+              - link "active Data Platform Modernization Migrate legacy data warehouse to a modern cloud-native data platform with real-time analytics capabilities. Progress 33 % 4 / 12 tasks 4 milestones" [ref=e292] [cursor=pointer]:
+                - /url: /project/proj_demo_06745ffd
+                - generic [ref=e293]:
+                  - generic [ref=e294]:
+                    - generic [ref=e297]: active
+                    - heading "Data Platform Modernization" [level=3] [ref=e298]
+                    - paragraph [ref=e299]: Migrate legacy data warehouse to a modern cloud-native data platform with real-time analytics capabilities.
+                  - img [ref=e300]
+                - generic [ref=e302]:
+                  - generic [ref=e303]:
+                    - generic [ref=e304]: Progress
+                    - generic [ref=e305]: 33 %
+                  - progressbar [ref=e306]
+                  - generic [ref=e308]:
+                    - generic [ref=e309]:
+                      - img [ref=e310]
+                      - generic [ref=e313]: 4 / 12 tasks
+                    - generic [ref=e314]:
+                      - img [ref=e315]
+                      - generic [ref=e319]: 4 milestones
+              - link "planning AI Chatbot Deployment Deploy an enterprise AI chatbot for customer support with multi-language support and sentiment analysis. Progress 33 % 4 / 12 tasks 4 milestones" [ref=e320] [cursor=pointer]:
+                - /url: /project/proj_demo_e3686884
+                - generic [ref=e321]:
+                  - generic [ref=e322]:
+                    - generic [ref=e325]: planning
+                    - heading "AI Chatbot Deployment" [level=3] [ref=e326]
+                    - paragraph [ref=e327]: Deploy an enterprise AI chatbot for customer support with multi-language support and sentiment analysis.
+                  - img [ref=e328]
+                - generic [ref=e330]:
+                  - generic [ref=e331]:
+                    - generic [ref=e332]: Progress
+                    - generic [ref=e333]: 33 %
+                  - progressbar [ref=e334]
+                  - generic [ref=e336]:
+                    - generic [ref=e337]:
+                      - img [ref=e338]
+                      - generic [ref=e341]: 4 / 12 tasks
+                    - generic [ref=e342]:
+                      - img [ref=e343]
+                      - generic [ref=e347]: 4 milestones
+    - region "Notifications alt+T"
+  - link "Made with Emergent" [ref=e348] [cursor=pointer]:
+    - /url: https://app.emergent.sh/?utm_source=emergent-badge
+    - img [ref=e349]
+    - paragraph [ref=e352]: Made with Emergent
+  - generic [ref=e353]: "15"
+```

@@ -12,6 +12,8 @@ import SprintPlanner from './pages/SprintPlanner';
 import ResourceManager from './pages/ResourceManager';
 import PortfolioDashboard from './pages/PortfolioDashboard';
 import AICopilot from './pages/AICopilot';
+import AllProjects from './pages/AllProjects';
+import ProgramView from './pages/ProgramView';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -196,6 +198,8 @@ const AppRouter = () => {
       <Route path="/resources" element={<ProtectedRoute><ResourceManager /></ProtectedRoute>} />
       <Route path="/portfolio" element={<ProtectedRoute><PortfolioDashboard /></ProtectedRoute>} />
       <Route path="/copilot" element={<ProtectedRoute><AICopilot /></ProtectedRoute>} />
+      <Route path="/projects" element={<ProtectedRoute><AllProjects /></ProtectedRoute>} />
+      <Route path="/program" element={<ProtectedRoute><ProgramView /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

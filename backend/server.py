@@ -142,9 +142,11 @@ class Story(BaseModel):
     title: str
     description: str = ""
     acceptance_criteria: List[str] = []
-    status: str = "backlog"  # backlog, ready, in_progress, done
+    status: str = "backlog"  # backlog, ready, in_progress, in_review, done
     priority: str = "medium"
     story_points: int = 0
+    sprint_id: Optional[str] = None
+    assigned_to: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class StoryCreate(BaseModel):
@@ -155,6 +157,8 @@ class StoryCreate(BaseModel):
     priority: str = "medium"
     story_points: int = 0
     acceptance_criteria: List[str] = []
+    sprint_id: Optional[str] = None
+    assigned_to: Optional[str] = None
 
 class StoryUpdate(BaseModel):
     title: Optional[str] = None
@@ -164,6 +168,32 @@ class StoryUpdate(BaseModel):
     story_points: Optional[int] = None
     status: Optional[str] = None
     acceptance_criteria: Optional[List[str]] = None
+    sprint_id: Optional[str] = None
+    assigned_to: Optional[str] = None
+
+class Sprint(BaseModel):
+    sprint_id: str = Field(default_factory=lambda: f"sprint_{uuid.uuid4().hex[:12]}")
+    project_id: str
+    name: str
+    goal: str = ""
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    status: str = "planning"  # planning, active, completed
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SprintCreate(BaseModel):
+    project_id: str
+    name: str
+    goal: str = ""
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+class SprintUpdate(BaseModel):
+    name: Optional[str] = None
+    goal: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    status: Optional[str] = None
 
 class Risk(BaseModel):
     risk_id: str = Field(default_factory=lambda: f"risk_{uuid.uuid4().hex[:12]}")
@@ -411,11 +441,21 @@ async def get_project(project_id: str, user: User = Depends(get_current_user)):
     milestones = await db.milestones.find({"project_id": project_id}, {"_id": 0}).to_list(100)
     stories = await db.stories.find({"project_id": project_id}, {"_id": 0}).to_list(200)
     risks = await db.risks.find({"project_id": project_id}, {"_id": 0}).to_list(100)
+    sprints = await db.sprints.find({"project_id": project_id}, {"_id": 0}).to_list(50)
+    
+    # Add sprint stats
+    for sprint in sprints:
+        sprint_stories = [s for s in stories if s.get("sprint_id") == sprint["sprint_id"]]
+        sprint["total_stories"] = len(sprint_stories)
+        sprint["completed_stories"] = len([s for s in sprint_stories if s["status"] == "done"])
+        sprint["total_points"] = sum([s.get("story_points", 0) for s in sprint_stories])
+        sprint["completed_points"] = sum([s.get("story_points", 0) for s in sprint_stories if s["status"] == "done"])
     
     project["tasks"] = tasks
     project["milestones"] = milestones
     project["stories"] = stories
     project["risks"] = risks
+    project["sprints"] = sprints
     
     return project
 
@@ -431,6 +471,7 @@ async def delete_project(project_id: str, user: User = Depends(get_current_user)
     await db.milestones.delete_many({"project_id": project_id})
     await db.stories.delete_many({"project_id": project_id})
     await db.risks.delete_many({"project_id": project_id})
+    await db.sprints.delete_many({"project_id": project_id})
     
     return {"message": "Project deleted"}
 
@@ -562,7 +603,9 @@ async def create_story(story: StoryCreate, user: User = Depends(get_current_user
         epic=story.epic,
         priority=story.priority,
         story_points=story.story_points,
-        acceptance_criteria=story.acceptance_criteria
+        acceptance_criteria=story.acceptance_criteria,
+        sprint_id=story.sprint_id,
+        assigned_to=story.assigned_to
     )
     
     doc = new_story.model_dump()
@@ -592,6 +635,69 @@ async def delete_story(story_id: str, user: User = Depends(get_current_user)):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Story not found")
     return {"message": "Story deleted"}
+
+# ================== SPRINT ROUTES ==================
+
+@api_router.get("/sprints", response_model=List[Dict])
+async def get_sprints(project_id: Optional[str] = None, user: User = Depends(get_current_user)):
+    """Get sprints"""
+    query = {}
+    if project_id:
+        query["project_id"] = project_id
+    
+    sprints = await db.sprints.find(query, {"_id": 0}).to_list(100)
+    
+    # Add story counts for each sprint
+    for sprint in sprints:
+        stories = await db.stories.find({"sprint_id": sprint["sprint_id"]}, {"_id": 0}).to_list(500)
+        sprint["total_stories"] = len(stories)
+        sprint["completed_stories"] = len([s for s in stories if s["status"] == "done"])
+        sprint["total_points"] = sum([s.get("story_points", 0) for s in stories])
+        sprint["completed_points"] = sum([s.get("story_points", 0) for s in stories if s["status"] == "done"])
+    
+    return sprints
+
+@api_router.post("/sprints", response_model=Dict)
+async def create_sprint(sprint: SprintCreate, user: User = Depends(get_current_user)):
+    """Create a sprint"""
+    new_sprint = Sprint(
+        project_id=sprint.project_id,
+        name=sprint.name,
+        goal=sprint.goal,
+        start_date=sprint.start_date,
+        end_date=sprint.end_date
+    )
+    
+    doc = new_sprint.model_dump()
+    doc["created_at"] = doc["created_at"].isoformat()
+    await db.sprints.insert_one(doc)
+    
+    return {**doc, "_id": None}
+
+@api_router.patch("/sprints/{sprint_id}", response_model=Dict)
+async def update_sprint(sprint_id: str, update: SprintUpdate, user: User = Depends(get_current_user)):
+    """Update a sprint"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.sprints.update_one({"sprint_id": sprint_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Sprint not found")
+    
+    sprint = await db.sprints.find_one({"sprint_id": sprint_id}, {"_id": 0})
+    return sprint
+
+@api_router.delete("/sprints/{sprint_id}")
+async def delete_sprint(sprint_id: str, user: User = Depends(get_current_user)):
+    """Delete a sprint"""
+    # Unassign stories from this sprint
+    await db.stories.update_many({"sprint_id": sprint_id}, {"$set": {"sprint_id": None}})
+    
+    result = await db.sprints.delete_one({"sprint_id": sprint_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Sprint not found")
+    return {"message": "Sprint deleted"}
 
 # ================== RISK ROUTES ==================
 
@@ -1012,6 +1118,19 @@ async def get_dashboard_stats(user: User = Depends(get_current_user)):
         "done": len([t for t in all_tasks if t["status"] == "done"])
     }
     
+    # Stories and Story Points
+    all_stories = await db.stories.find({"project_id": {"$in": project_ids}}, {"_id": 0}).to_list(1000)
+    total_story_points = sum([s.get("story_points", 0) for s in all_stories])
+    completed_story_points = sum([s.get("story_points", 0) for s in all_stories if s["status"] == "done"])
+    
+    stories_by_status = {
+        "backlog": len([s for s in all_stories if s["status"] == "backlog"]),
+        "ready": len([s for s in all_stories if s["status"] == "ready"]),
+        "in_progress": len([s for s in all_stories if s["status"] == "in_progress"]),
+        "in_review": len([s for s in all_stories if s["status"] == "in_review"]),
+        "done": len([s for s in all_stories if s["status"] == "done"])
+    }
+    
     # Milestones
     all_milestones = await db.milestones.find({"project_id": {"$in": project_ids}}, {"_id": 0}).to_list(200)
     milestones_by_health = {
@@ -1023,15 +1142,27 @@ async def get_dashboard_stats(user: User = Depends(get_current_user)):
     # Resources
     resources = await db.resources.find({}, {"_id": 0}).to_list(100)
     
-    # Calculate velocity (tasks done per week - simulated)
-    velocity_data = [
-        {"week": "W1", "planned": 12, "completed": 10},
-        {"week": "W2", "planned": 15, "completed": 14},
-        {"week": "W3", "planned": 14, "completed": 16},
-        {"week": "W4", "planned": 18, "completed": 15},
-        {"week": "W5", "planned": 16, "completed": 17},
-        {"week": "W6", "planned": 20, "completed": 18}
-    ]
+    # Story points by sprint (for chart)
+    sprints = await db.sprints.find({"project_id": {"$in": project_ids}}, {"_id": 0}).to_list(50)
+    story_points_data = []
+    for sprint in sprints[-6:]:  # Last 6 sprints
+        sprint_stories = [s for s in all_stories if s.get("sprint_id") == sprint["sprint_id"]]
+        story_points_data.append({
+            "sprint": sprint["name"],
+            "total": sum([s.get("story_points", 0) for s in sprint_stories]),
+            "completed": sum([s.get("story_points", 0) for s in sprint_stories if s["status"] == "done"])
+        })
+    
+    # If no real sprint data, provide sample
+    if not story_points_data:
+        story_points_data = [
+            {"sprint": "Sprint 1", "total": 21, "completed": 18},
+            {"sprint": "Sprint 2", "total": 26, "completed": 24},
+            {"sprint": "Sprint 3", "total": 34, "completed": 29},
+            {"sprint": "Sprint 4", "total": 29, "completed": 27},
+            {"sprint": "Sprint 5", "total": 31, "completed": 28},
+            {"sprint": "Sprint 6", "total": 38, "completed": 32}
+        ]
     
     # Burndown data (simulated)
     burndown_data = [
@@ -1050,14 +1181,16 @@ async def get_dashboard_stats(user: User = Depends(get_current_user)):
             "at_risk": len([p for p in projects if p.get("status") == "at_risk"])
         },
         "tasks": tasks_by_status,
+        "stories": stories_by_status,
         "milestones": milestones_by_health,
         "resources": {
             "total": len(resources),
             "available": len([r for r in resources if r["availability"] > 50])
         },
-        "velocity_data": velocity_data,
+        "story_points_data": story_points_data,
         "burndown_data": burndown_data,
-        "total_story_points": sum([s.get("story_points", 0) for s in await db.stories.find({"project_id": {"$in": project_ids}}, {"_id": 0}).to_list(500)])
+        "total_story_points": total_story_points,
+        "completed_story_points": completed_story_points
     }
 
 # ================== SEED DATA ==================
@@ -1136,6 +1269,72 @@ async def seed_demo_data(user: User = Depends(get_current_user)):
             {"$set": project},
             upsert=True
         )
+        
+        # Add sprints for each project
+        sprint_templates = [
+            {"name": "Sprint 1", "goal": "Foundation and setup", "status": "completed", "start_date": "2025-01-15", "end_date": "2025-01-29"},
+            {"name": "Sprint 2", "goal": "Core features development", "status": "completed", "start_date": "2025-01-30", "end_date": "2025-02-13"},
+            {"name": "Sprint 3", "goal": "Integration and testing", "status": "active", "start_date": "2025-02-14", "end_date": "2025-02-28"},
+            {"name": "Sprint 4", "goal": "Polish and optimization", "status": "planning", "start_date": "2025-03-01", "end_date": "2025-03-15"}
+        ]
+        
+        sprint_ids = []
+        for sprint in sprint_templates:
+            sprint_id = f"sprint_{uuid.uuid4().hex[:12]}"
+            sprint_ids.append(sprint_id)
+            sprint_doc = {
+                "sprint_id": sprint_id,
+                "project_id": project["project_id"],
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                **sprint
+            }
+            await db.sprints.update_one(
+                {"project_id": project["project_id"], "name": sprint["name"]},
+                {"$set": sprint_doc},
+                upsert=True
+            )
+        
+        # Get sprint IDs for this project
+        project_sprints = await db.sprints.find({"project_id": project["project_id"]}, {"_id": 0}).to_list(10)
+        sprint_id_map = {s["name"]: s["sprint_id"] for s in project_sprints}
+        
+        # Add stories with sprint assignments
+        story_templates = [
+            {"title": "As a user, I want to login securely so that my data is protected", "epic": "Authentication", "status": "done", "story_points": 5, "sprint_name": "Sprint 1"},
+            {"title": "As a user, I want to reset my password so that I can recover access", "epic": "Authentication", "status": "done", "story_points": 3, "sprint_name": "Sprint 1"},
+            {"title": "As a user, I want to view my dashboard so that I can see my overview", "epic": "Dashboard", "status": "done", "story_points": 8, "sprint_name": "Sprint 1"},
+            {"title": "As a user, I want to create projects so that I can organize my work", "epic": "Projects", "status": "done", "story_points": 5, "sprint_name": "Sprint 2"},
+            {"title": "As a user, I want to add team members so that we can collaborate", "epic": "Projects", "status": "done", "story_points": 5, "sprint_name": "Sprint 2"},
+            {"title": "As a PM, I want to track milestones so that I can monitor progress", "epic": "Tracking", "status": "in_progress", "story_points": 8, "sprint_name": "Sprint 3"},
+            {"title": "As a PM, I want to generate reports so that I can share status", "epic": "Reporting", "status": "in_progress", "story_points": 8, "sprint_name": "Sprint 3"},
+            {"title": "As a user, I want notifications so that I stay informed", "epic": "Notifications", "status": "ready", "story_points": 5, "sprint_name": "Sprint 3"},
+            {"title": "As a PM, I want AI insights so that I can make better decisions", "epic": "AI Features", "status": "backlog", "story_points": 13, "sprint_name": "Sprint 4"},
+            {"title": "As a user, I want to export data so that I can use it elsewhere", "epic": "Data Management", "status": "backlog", "story_points": 5, "sprint_name": "Sprint 4"}
+        ]
+        
+        for story in story_templates:
+            story_doc = {
+                "story_id": f"story_{uuid.uuid4().hex[:12]}",
+                "project_id": project["project_id"],
+                "title": story["title"],
+                "description": f"User story for {story['epic']}",
+                "epic": story["epic"],
+                "status": story["status"],
+                "story_points": story["story_points"],
+                "priority": "high" if story["story_points"] >= 8 else "medium",
+                "sprint_id": sprint_id_map.get(story["sprint_name"]),
+                "acceptance_criteria": [
+                    f"Feature works as expected",
+                    f"Unit tests pass",
+                    f"Code reviewed and approved"
+                ],
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.stories.update_one(
+                {"project_id": project["project_id"], "title": story["title"]},
+                {"$set": story_doc},
+                upsert=True
+            )
         
         # Add milestones for each project
         milestones = [

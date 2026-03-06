@@ -1,8 +1,8 @@
 import { Page, expect, BrowserContext } from '@playwright/test';
 
 export const SESSION_TOKEN = 'test_session_1772823453557';
-export const BASE_URL = 'https://project-copilot-ai-1.preview.emergentagent.com';
-export const APP_DOMAIN = 'project-copilot-ai-1.preview.emergentagent.com';
+export const BASE_URL = 'https://project-planner-ai-1.preview.emergentagent.com';
+export const APP_DOMAIN = 'project-planner-ai-1.preview.emergentagent.com';
 
 export async function waitForAppReady(page: Page) {
   await page.waitForLoadState('domcontentloaded');

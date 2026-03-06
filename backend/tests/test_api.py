@@ -4,7 +4,7 @@ import os
 import time
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://project-copilot-ai-1.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://project-planner-ai-1.preview.emergentagent.com')
 SESSION_TOKEN = "test_session_1772823453557"
 AUTH_HEADERS = {"Authorization": f"Bearer {SESSION_TOKEN}", "Content-Type": "application/json"}
 
@@ -415,7 +415,9 @@ class TestSeedAndDashboard:
         assert "projects" in data
         assert "tasks" in data
         assert "resources" in data
-        assert "velocity_data" in data
+        assert "story_points_data" in data
+        assert "milestones" in data
+        assert "stories" in data
 
     def test_seed_demo_data(self):
         """POST /seed-demo-data returns success"""
@@ -441,4 +443,147 @@ class TestSeedAndDashboard:
         """GET /stories returns list"""
         r = requests.get(f"{BASE_URL}/api/stories", headers=AUTH_HEADERS)
         assert r.status_code == 200
+
+
+class TestSprintsCRUD:
+    """Test Sprints CRUD"""
+
+    def setup_method(self):
+        ts = int(time.time())
+        payload = {"name": f"TEST_SprintProject_{ts}", "description": "Sprint test", "priority": "low"}
+        r = requests.post(f"{BASE_URL}/api/projects", json=payload, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        self.project_id = r.json()["project_id"]
+        self.created_sprint_ids = []
+
+    def teardown_method(self):
+        for sid in self.created_sprint_ids:
+            requests.delete(f"{BASE_URL}/api/sprints/{sid}", headers=AUTH_HEADERS)
+        requests.delete(f"{BASE_URL}/api/projects/{self.project_id}", headers=AUTH_HEADERS)
+
+    def test_create_sprint(self):
+        """POST /sprints creates a new sprint"""
+        ts = int(time.time())
+        payload = {
+            "project_id": self.project_id,
+            "name": f"TEST_Sprint_{ts}",
+            "goal": "Complete user auth",
+            "start_date": "2026-02-01",
+            "end_date": "2026-02-14"
+        }
+        r = requests.post(f"{BASE_URL}/api/sprints", json=payload, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        data = r.json()
+        assert "sprint_id" in data
+        assert data["name"] == payload["name"]
+        assert data["goal"] == payload["goal"]
+        self.created_sprint_ids.append(data["sprint_id"])
+
+    def test_get_sprints_by_project(self):
+        """GET /sprints?project_id= filters by project"""
+        ts = int(time.time())
+        payload = {"project_id": self.project_id, "name": f"TEST_Sprint_Filter_{ts}"}
+        r = requests.post(f"{BASE_URL}/api/sprints", json=payload, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        sprint_id = r.json()["sprint_id"]
+        self.created_sprint_ids.append(sprint_id)
+
+        r = requests.get(f"{BASE_URL}/api/sprints?project_id={self.project_id}", headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        assert any(s["sprint_id"] == sprint_id for s in r.json())
+
+    def test_update_sprint(self):
+        """PATCH /sprints/{id} updates sprint"""
+        ts = int(time.time())
+        payload = {"project_id": self.project_id, "name": f"TEST_Sprint_Update_{ts}"}
+        r = requests.post(f"{BASE_URL}/api/sprints", json=payload, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        sprint_id = r.json()["sprint_id"]
+        self.created_sprint_ids.append(sprint_id)
+
+        r = requests.patch(f"{BASE_URL}/api/sprints/{sprint_id}", json={"status": "active", "goal": "Updated goal"}, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        assert r.json()["status"] == "active"
+        assert r.json()["goal"] == "Updated goal"
+
+    def test_delete_sprint(self):
+        """DELETE /sprints/{id} removes the sprint"""
+        ts = int(time.time())
+        payload = {"project_id": self.project_id, "name": f"TEST_Sprint_Del_{ts}"}
+        r = requests.post(f"{BASE_URL}/api/sprints", json=payload, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        sprint_id = r.json()["sprint_id"]
+
+        r = requests.delete(f"{BASE_URL}/api/sprints/{sprint_id}", headers=AUTH_HEADERS)
+        assert r.status_code == 200
+
+        # Verify gone
+        r = requests.get(f"{BASE_URL}/api/sprints?project_id={self.project_id}", headers=AUTH_HEADERS)
+        assert all(s["sprint_id"] != sprint_id for s in r.json())
+
+    def test_assign_story_to_sprint(self):
+        """Story can be assigned to sprint via PATCH"""
+        ts = int(time.time())
+        # Create sprint
+        sprint_payload = {"project_id": self.project_id, "name": f"TEST_Sprint_Assign_{ts}"}
+        r = requests.post(f"{BASE_URL}/api/sprints", json=sprint_payload, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        sprint_id = r.json()["sprint_id"]
+        self.created_sprint_ids.append(sprint_id)
+
+        # Create story
+        story_payload = {"project_id": self.project_id, "title": f"TEST_Story_ForSprint_{ts}", "acceptance_criteria": []}
+        r = requests.post(f"{BASE_URL}/api/stories", json=story_payload, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        story_id = r.json()["story_id"]
+
+        # Assign to sprint
+        r = requests.patch(f"{BASE_URL}/api/stories/{story_id}", json={"sprint_id": sprint_id}, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        assert r.json()["sprint_id"] == sprint_id
+
+        # Cleanup story
+        requests.delete(f"{BASE_URL}/api/stories/{story_id}", headers=AUTH_HEADERS)
+
+
+class TestResourcesCRUD:
+    """Test Resources CRUD"""
+
+    def test_create_resource(self):
+        """POST /resources creates a new resource"""
+        ts = int(time.time())
+        payload = {
+            "name": f"TEST_Resource_{ts}",
+            "email": f"test.resource.{ts}@compassx.com",
+            "role": "Developer",
+            "skills": ["Python", "React", "MongoDB"],
+            "availability": 100
+        }
+        r = requests.post(f"{BASE_URL}/api/resources", json=payload, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        data = r.json()
+        assert "resource_id" in data
+        assert data["name"] == payload["name"]
+        assert data["role"] == "Developer"
+        assert len(data["skills"]) == 3
+
+    def test_get_resources_list(self):
+        """GET /resources returns list of resources"""
+        r = requests.get(f"{BASE_URL}/api/resources", headers=AUTH_HEADERS)
+        assert r.status_code == 200
         assert isinstance(r.json(), list)
+
+    def test_create_resource_minimal(self):
+        """POST /resources with minimal required fields"""
+        ts = int(time.time())
+        payload = {
+            "name": f"TEST_MinimalResource_{ts}",
+            "email": f"minimal.{ts}@compassx.com",
+            "role": "QA Engineer"
+        }
+        r = requests.post(f"{BASE_URL}/api/resources", json=payload, headers=AUTH_HEADERS)
+        assert r.status_code == 200
+        data = r.json()
+        assert "resource_id" in data
+        assert data["availability"] == 100  # default value
+        assert data["skills"] == []  # default value

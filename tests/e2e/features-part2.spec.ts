@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { dismissToasts } from '../fixtures/helpers';
 
 const SESSION_TOKEN = 'test_session_1772823453557';
-const APP_DOMAIN = 'project-copilot-ai-1.preview.emergentagent.com';
+const APP_DOMAIN = 'project-planner-ai-1.preview.emergentagent.com';
 
 async function authenticateAndGoto(page: any, path: string) {
   await page.context().addCookies([{

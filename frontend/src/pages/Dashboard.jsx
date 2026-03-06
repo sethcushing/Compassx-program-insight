@@ -26,10 +26,11 @@ const Sidebar = ({ currentPage }) => {
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', id: 'dashboard' },
+    { icon: Briefcase, label: 'All Projects', href: '/projects', id: 'projects' },
     { icon: Sparkles, label: 'AI Creator', href: '/create', id: 'create' },
-    { icon: FolderKanban, label: 'Sprint Planner', href: '/sprint', id: 'sprint' },
+    { icon: FolderKanban, label: 'Sprint Board', href: '/sprint', id: 'sprint' },
     { icon: Users, label: 'Resources', href: '/resources', id: 'resources' },
-    { icon: Briefcase, label: 'Portfolio', href: '/portfolio', id: 'portfolio' },
+    { icon: Target, label: 'Program View', href: '/program', id: 'program' },
     { icon: MessageSquare, label: 'AI Copilot', href: '/copilot', id: 'copilot' },
   ];
 
@@ -437,12 +438,12 @@ const Dashboard = () => {
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-          {/* Velocity Chart */}
-          <div className="lg:col-span-8 glass-card p-6" data-testid="velocity-chart">
+          {/* Story Points Chart */}
+          <div className="lg:col-span-8 glass-card p-6" data-testid="story-points-chart">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-1">VELOCITY TREND</h3>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">Team Performance</p>
+                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-1">STORY POINTS</h3>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">Total vs Completed</p>
               </div>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
@@ -451,19 +452,19 @@ const Dashboard = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500/30" />
-                  <span className="text-slate-500">Planned</span>
+                  <span className="text-slate-500">Total</span>
                 </div>
               </div>
             </div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats?.velocity_data || []}>
+                <BarChart data={stats?.story_points_data || []}>
                   <CartesianGrid strokeDasharray="4" stroke="rgba(148, 163, 184, 0.1)" vertical={false} />
-                  <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <XAxis dataKey="sprint" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="planned" fill="rgba(59, 130, 246, 0.3)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="completed" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="total" fill="rgba(59, 130, 246, 0.3)" radius={[4, 4, 0, 0]} name="Total Points" />
+                  <Bar dataKey="completed" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Completed Points" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

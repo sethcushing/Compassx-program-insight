@@ -29,39 +29,66 @@ Build a highly graphical, modern, AI-native project management platform designed
 - **Database**: MongoDB
 - **AI**: OpenAI GPT-5.2 via Emergent Integrations
 
-## What's Been Implemented (March 6, 2025)
+## What's Been Implemented
 
 ### Phase 1: Core Platform (COMPLETE)
 - [x] Landing page with Google OAuth login
-- [x] Dashboard with stats, velocity/burndown charts
+- [x] Dashboard with stats, story points/burndown charts
 - [x] AI Project Creator - generates full project plans from prompts
 - [x] Project Detail page with tabs (Overview, Tasks, Milestones, Stories)
-- [x] Sprint Planner with drag-and-drop Kanban board
+- [x] Sprint Planner with drag-and-drop Kanban board (Stories-based)
 - [x] Resource Manager with team capacity tracking
 - [x] Portfolio Dashboard with project overview table
 - [x] AI Copilot chat interface
 - [x] Light/Dark mode toggle
 - [x] Demo data seeding
-- [x] Full test suite (19 backend + 36 frontend tests passing)
+- [x] All Projects page with filters
+- [x] Program View with drill-down metrics
+
+### CRUD Operations (TESTED - December 6, 2025)
+- [x] Projects: Create, Read, Update, Delete
+- [x] Tasks: Create, Read, Update, Delete
+- [x] Stories: Create, Read, Update, Delete (with story points)
+- [x] Sprints: Create, Read, Update, Delete
+- [x] Milestones: Create, Read, Update, Delete
+- [x] Risks: Create, Read, Update, Delete
+- [x] Resources: Create, Read
+- [x] Dashboard Stats endpoint
+- [x] Story-Sprint Assignment
 
 ### API Endpoints
 - `/api/auth/session` - Exchange OAuth session
 - `/api/auth/me` - Get current user
 - `/api/auth/logout` - Logout
 - `/api/projects` - CRUD projects
+- `/api/projects/{id}` - Get/Update/Delete project
 - `/api/tasks` - CRUD tasks
 - `/api/milestones` - CRUD milestones
 - `/api/resources` - CRUD resources
 - `/api/stories` - CRUD stories
+- `/api/sprints` - CRUD sprints
+- `/api/risks` - CRUD risks
 - `/api/dashboard/stats` - Dashboard statistics
 - `/api/ai/generate-project` - AI project generation
 - `/api/ai/chat` - AI Copilot chat
 - `/api/ai/generate-stories` - AI story generation
 - `/api/seed-demo-data` - Seed demo data
 
+## Frontend Routes
+- `/` - Landing page
+- `/dashboard` - Main dashboard
+- `/create` - AI Project Creator
+- `/project/:projectId` - Project detail
+- `/sprint` - Sprint Planner (Kanban)
+- `/resources` - Resource Manager
+- `/portfolio` - Portfolio Dashboard
+- `/copilot` - AI Copilot
+- `/projects` - All Projects list
+- `/program` - Program View
+
 ## Prioritized Backlog
 
-### P0 (Critical)
+### P0 (Critical) - COMPLETED
 - All P0 items completed for MVP
 
 ### P1 (High Priority - Next Phase)
@@ -83,6 +110,11 @@ Build a highly graphical, modern, AI-native project management platform designed
 - [ ] Export to PDF/Excel
 - [ ] Custom dashboard widgets
 - [ ] Slack/Teams integration
+
+## Test Results
+- Backend CRUD Tests: 9/9 PASS
+- Frontend Landing: PASS
+- Routes configured: PASS
 
 ## Next Tasks
 1. Implement AI-generated status reports

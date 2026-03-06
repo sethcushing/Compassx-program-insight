@@ -6,15 +6,23 @@ import { Sidebar } from './Dashboard';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
 import {
-  FolderKanban, Plus, GripVertical, Circle, Play, Pause, CheckCircle2, Clock
+  FolderKanban, Plus, GripVertical, Circle, Play, Pause, CheckCircle2, Clock,
+  BookOpen, Calendar, Users, Edit2, Target
 } from 'lucide-react';
 
 const SprintPlanner = () => {
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [tasks, setTasks] = useState([]);
+  const [sprints, setSprints] = useState([]);
+  const [selectedSprint, setSelectedSprint] = useState('all');
+  const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAddSprintOpen, setIsAddSprintOpen] = useState(false);
+  const [newSprint, setNewSprint] = useState({ name: '', goal: '', start_date: '', end_date: '' });
 
   useEffect(() => {
     loadProjects();
@@ -22,7 +30,7 @@ const SprintPlanner = () => {
 
   useEffect(() => {
     if (selectedProject) {
-      loadTasks(selectedProject);
+      loadProjectData(selectedProject);
     }
   }, [selectedProject]);
 
@@ -40,33 +48,73 @@ const SprintPlanner = () => {
     }
   };
 
-  const loadTasks = async (projectId) => {
+  const loadProjectData = async (projectId) => {
     try {
-      const response = await axios.get(`${API}/tasks?project_id=${projectId}`, { withCredentials: true });
-      setTasks(response.data);
+      const [sprintsRes, storiesRes] = await Promise.all([
+        axios.get(`${API}/sprints?project_id=${projectId}`, { withCredentials: true }),
+        axios.get(`${API}/stories?project_id=${projectId}`, { withCredentials: true })
+      ]);
+      setSprints(sprintsRes.data);
+      setStories(storiesRes.data);
     } catch (error) {
-      console.error('Error loading tasks:', error);
+      console.error('Error loading project data:', error);
     }
   };
 
-  const handleUpdateTaskStatus = async (taskId, newStatus) => {
+  const handleAddSprint = async () => {
+    if (!newSprint.name.trim()) {
+      toast.error('Sprint name is required');
+      return;
+    }
     try {
-      await axios.patch(`${API}/tasks/${taskId}`, { status: newStatus }, { withCredentials: true });
-      setTasks(prev => prev.map(t => t.task_id === taskId ? { ...t, status: newStatus } : t));
-      toast.success('Task updated');
+      await axios.post(`${API}/sprints`, {
+        project_id: selectedProject,
+        ...newSprint
+      }, { withCredentials: true });
+      toast.success('Sprint created');
+      setIsAddSprintOpen(false);
+      setNewSprint({ name: '', goal: '', start_date: '', end_date: '' });
+      loadProjectData(selectedProject);
     } catch (error) {
-      toast.error('Failed to update task');
+      toast.error('Failed to create sprint');
+    }
+  };
+
+  const handleUpdateStoryStatus = async (storyId, newStatus) => {
+    try {
+      await axios.patch(`${API}/stories/${storyId}`, { status: newStatus }, { withCredentials: true });
+      setStories(prev => prev.map(s => s.story_id === storyId ? { ...s, status: newStatus } : s));
+      toast.success('Story updated');
+    } catch (error) {
+      toast.error('Failed to update story');
+    }
+  };
+
+  const handleAssignToSprint = async (storyId, sprintId) => {
+    try {
+      await axios.patch(`${API}/stories/${storyId}`, { sprint_id: sprintId || null }, { withCredentials: true });
+      setStories(prev => prev.map(s => s.story_id === storyId ? { ...s, sprint_id: sprintId } : s));
+      toast.success('Story assigned to sprint');
+    } catch (error) {
+      toast.error('Failed to assign story');
     }
   };
 
   const columns = [
-    { id: 'todo', title: 'To Do', icon: Circle, color: 'text-slate-500' },
+    { id: 'backlog', title: 'Backlog', icon: Circle, color: 'text-slate-500' },
+    { id: 'ready', title: 'Ready', icon: Target, color: 'text-cyan-500' },
     { id: 'in_progress', title: 'In Progress', icon: Play, color: 'text-blue-500' },
-    { id: 'in_review', title: 'In Review', icon: Pause, color: 'text-purple-500' },
+    { id: 'in_review', title: 'In Review', icon: Pause, color: 'text-amber-500' },
     { id: 'done', title: 'Done', icon: CheckCircle2, color: 'text-emerald-500' }
   ];
 
-  const getTasksByStatus = (status) => tasks.filter(t => t.status === status);
+  const getStoriesByStatus = (status) => {
+    let filtered = stories.filter(s => s.status === status);
+    if (selectedSprint !== 'all') {
+      filtered = filtered.filter(s => s.sprint_id === selectedSprint);
+    }
+    return filtered;
+  };
 
   const getPriorityColor = (priority) => {
     const colors = {
@@ -78,8 +126,8 @@ const SprintPlanner = () => {
     return colors[priority] || colors.medium;
   };
 
-  const handleDragStart = (e, taskId) => {
-    e.dataTransfer.setData('taskId', taskId);
+  const handleDragStart = (e, storyId) => {
+    e.dataTransfer.setData('storyId', storyId);
   };
 
   const handleDragOver = (e) => {
@@ -88,10 +136,18 @@ const SprintPlanner = () => {
 
   const handleDrop = (e, newStatus) => {
     e.preventDefault();
-    const taskId = e.dataTransfer.getData('taskId');
-    if (taskId) {
-      handleUpdateTaskStatus(taskId, newStatus);
+    const storyId = e.dataTransfer.getData('storyId');
+    if (storyId) {
+      handleUpdateStoryStatus(storyId, newStatus);
     }
+  };
+
+  // Calculate sprint stats
+  const getSprintStats = (sprintId) => {
+    const sprintStories = stories.filter(s => s.sprint_id === sprintId);
+    const totalPoints = sprintStories.reduce((acc, s) => acc + (s.story_points || 0), 0);
+    const completedPoints = sprintStories.filter(s => s.status === 'done').reduce((acc, s) => acc + (s.story_points || 0), 0);
+    return { total: sprintStories.length, completed: sprintStories.filter(s => s.status === 'done').length, totalPoints, completedPoints };
   };
 
   if (loading) {
@@ -114,19 +170,19 @@ const SprintPlanner = () => {
       
       <main className="ml-20 lg:ml-64 p-6 lg:p-8" data-testid="sprint-planner-main">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-2">
-              Sprint Planner
+              Sprint Board
             </h1>
             <p className="text-slate-500 dark:text-slate-400">
-              Drag and drop tasks to manage your sprint
+              Drag and drop stories to manage your sprint
             </p>
           </div>
 
           <div className="flex items-center gap-4">
             <Select value={selectedProject || ''} onValueChange={setSelectedProject}>
-              <SelectTrigger className="w-64 rounded-xl" data-testid="project-selector">
+              <SelectTrigger className="w-56 rounded-xl" data-testid="project-selector">
                 <SelectValue placeholder="Select project" />
               </SelectTrigger>
               <SelectContent>
@@ -137,8 +193,104 @@ const SprintPlanner = () => {
                 ))}
               </SelectContent>
             </Select>
+
+            <Dialog open={isAddSprintOpen} onOpenChange={setIsAddSprintOpen}>
+              <DialogTrigger asChild>
+                <Button className="rounded-full bg-blue-600 text-white hover:bg-blue-700" data-testid="add-sprint-button">
+                  <Plus className="w-4 h-4 mr-2" strokeWidth={1.5} />
+                  New Sprint
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create New Sprint</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Sprint Name *</label>
+                    <Input
+                      value={newSprint.name}
+                      onChange={(e) => setNewSprint(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="e.g., Sprint 5"
+                      className="rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Sprint Goal</label>
+                    <Textarea
+                      value={newSprint.goal}
+                      onChange={(e) => setNewSprint(prev => ({ ...prev, goal: e.target.value }))}
+                      placeholder="What do we want to achieve?"
+                      className="rounded-xl"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Start Date</label>
+                      <Input
+                        type="date"
+                        value={newSprint.start_date}
+                        onChange={(e) => setNewSprint(prev => ({ ...prev, start_date: e.target.value }))}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">End Date</label>
+                      <Input
+                        type="date"
+                        value={newSprint.end_date}
+                        onChange={(e) => setNewSprint(prev => ({ ...prev, end_date: e.target.value }))}
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={handleAddSprint} className="w-full rounded-full bg-blue-600">
+                    Create Sprint
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
+
+        {/* Sprint Selector */}
+        {sprints.length > 0 && (
+          <div className="glass-card p-4 mb-6">
+            <div className="flex items-center gap-4 overflow-x-auto">
+              <button
+                onClick={() => setSelectedSprint('all')}
+                className={`px-4 py-2 rounded-xl font-medium transition-all whitespace-nowrap ${
+                  selectedSprint === 'all'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
+                }`}
+                data-testid="sprint-filter-all"
+              >
+                All Stories
+              </button>
+              {sprints.map(sprint => {
+                const stats = getSprintStats(sprint.sprint_id);
+                return (
+                  <button
+                    key={sprint.sprint_id}
+                    onClick={() => setSelectedSprint(sprint.sprint_id)}
+                    className={`px-4 py-2 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
+                      selectedSprint === sprint.sprint_id
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
+                    }`}
+                    data-testid={`sprint-filter-${sprint.sprint_id}`}
+                  >
+                    {sprint.name}
+                    <Badge className={`${selectedSprint === sprint.sprint_id ? 'bg-white/20 text-white' : 'bg-blue-500/10 text-blue-600'}`}>
+                      {stats.completedPoints}/{stats.totalPoints} pts
+                    </Badge>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Kanban Board */}
         {projects.length === 0 ? (
@@ -148,9 +300,9 @@ const SprintPlanner = () => {
             <p className="text-slate-500 mb-6">Create a project to start planning your sprints.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="kanban-board">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4" data-testid="kanban-board">
             {columns.map(column => {
-              const columnTasks = getTasksByStatus(column.id);
+              const columnStories = getStoriesByStatus(column.id);
               const Icon = column.icon;
               
               return (
@@ -162,58 +314,67 @@ const SprintPlanner = () => {
                   data-testid={`column-${column.id}`}
                 >
                   {/* Column Header */}
-                  <div className="glass-card p-4 mb-4">
+                  <div className="glass-card p-3 mb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Icon className={`w-5 h-5 ${column.color}`} strokeWidth={1.5} />
-                        <span className="font-semibold text-slate-900 dark:text-white">{column.title}</span>
+                        <Icon className={`w-4 h-4 ${column.color}`} strokeWidth={1.5} />
+                        <span className="font-semibold text-sm text-slate-900 dark:text-white">{column.title}</span>
                       </div>
-                      <Badge className="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400">
-                        {columnTasks.length}
+                      <Badge className="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 text-xs">
+                        {columnStories.length}
                       </Badge>
                     </div>
                   </div>
 
-                  {/* Tasks */}
-                  <div className="flex-1 space-y-3 min-h-[400px]">
-                    {columnTasks.map(task => (
+                  {/* Stories */}
+                  <div className="flex-1 space-y-2 min-h-[300px]">
+                    {columnStories.map(story => (
                       <div
-                        key={task.task_id}
+                        key={story.story_id}
                         draggable
-                        onDragStart={(e) => handleDragStart(e, task.task_id)}
-                        className="glass-card p-4 cursor-grab active:cursor-grabbing hover:shadow-lg transition-all group"
-                        data-testid={`task-card-${task.task_id}`}
+                        onDragStart={(e) => handleDragStart(e, story.story_id)}
+                        className="glass-card p-3 cursor-grab active:cursor-grabbing hover:shadow-lg transition-all group"
+                        data-testid={`story-card-${story.story_id}`}
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-2">
                           <GripVertical className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" strokeWidth={1.5} />
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`} />
-                              <span className="text-xs text-slate-400 uppercase tracking-wider">{task.priority}</span>
-                            </div>
-                            <h4 className="font-medium text-slate-900 dark:text-white mb-2 line-clamp-2">
-                              {task.title}
-                            </h4>
-                            {task.description && (
-                              <p className="text-sm text-slate-500 line-clamp-2 mb-3">{task.description}</p>
-                            )}
-                            <div className="flex items-center gap-3 text-xs text-slate-400">
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" strokeWidth={1.5} />
-                                {task.estimated_hours}h
-                              </div>
-                              {task.sprint && (
-                                <Badge className="bg-blue-500/10 text-blue-600 text-xs">{task.sprint}</Badge>
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className={`w-2 h-2 rounded-full ${getPriorityColor(story.priority)}`} />
+                              {story.epic && (
+                                <Badge className="bg-cyan-500/10 text-cyan-600 text-xs">{story.epic}</Badge>
                               )}
+                            </div>
+                            <h4 className="font-medium text-sm text-slate-900 dark:text-white mb-2 line-clamp-2">
+                              {story.title}
+                            </h4>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs text-slate-400">
+                                <Badge className="bg-blue-500/10 text-blue-600">{story.story_points || 0} pts</Badge>
+                              </div>
+                              <Select
+                                value={story.sprint_id || 'backlog'}
+                                onValueChange={(value) => handleAssignToSprint(story.story_id, value === 'backlog' ? null : value)}
+                              >
+                                <SelectTrigger className="h-6 w-24 text-xs rounded-lg border-0 bg-slate-100 dark:bg-white/5">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="backlog">Backlog</SelectItem>
+                                  {sprints.map(s => (
+                                    <SelectItem key={s.sprint_id} value={s.sprint_id}>{s.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
                           </div>
                         </div>
                       </div>
                     ))}
 
-                    {columnTasks.length === 0 && (
-                      <div className="h-32 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-center">
-                        <p className="text-sm text-slate-400">Drop tasks here</p>
+                    {columnStories.length === 0 && (
+                      <div className="h-24 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-center">
+                        <p className="text-xs text-slate-400">Drop stories here</p>
                       </div>
                     )}
                   </div>
