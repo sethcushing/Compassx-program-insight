@@ -32,3 +32,49 @@
         transform: rotate(360deg);
     }
 }
+
+/* Additional utility styles */
+.line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Prose styles for markdown content */
+.prose h1, .prose h2, .prose h3 {
+    font-weight: 700;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+.prose ul, .prose ol {
+    padding-left: 1.5em;
+    margin: 0.5em 0;
+}
+
+.prose li {
+    margin: 0.25em 0;
+}
+
+.prose strong {
+    font-weight: 600;
+}
+
+.prose code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.dark .prose code {
+    background: rgba(255, 255, 255, 0.1);
+}
