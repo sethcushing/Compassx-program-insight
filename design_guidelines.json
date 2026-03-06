@@ -1,0 +1,138 @@
+{
+  "project_name": "CompassX - AI Project Intelligence System",
+  "design_philosophy": {
+    "core_identity": "McKinsey-grade Enterprise Digital Product",
+    "aesthetic": "Glassmorphism, Precision, Future-Corporate",
+    "key_principles": [
+      "Fusion: Swiss Grid Structure + Glassmorphism Depth",
+      "Emotion: Trusted Authority (Deep Navy) + Electric Insight (Vivid Blue)",
+      "Content: Data is the Hero. UI is the Lens.",
+      "Density: High-density for data, generous breathing room for containers."
+    ]
+  },
+  "typography": {
+    "font_family": {
+      "primary": "Lato, sans-serif",
+      "secondary": "Lato, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-4xl md:text-5xl font-black tracking-tight",
+      "h2": "text-3xl md:text-4xl font-bold tracking-tight",
+      "h3": "text-2xl font-bold tracking-tight",
+      "h4": "text-xl font-semibold tracking-tight",
+      "body": "text-base font-normal leading-relaxed",
+      "small": "text-sm font-medium tracking-wide opacity-80",
+      "tiny": "text-xs font-bold uppercase tracking-[0.1em] opacity-60"
+    },
+    "instructions": "Use Lato for everything. Create hierarchy through Weight (300 vs 900) and Opacity, not just size."
+  },
+  "colors": {
+    "theme_strategy": "Glassmorphism Hybrid (Light/Dark)",
+    "light_mode": {
+      "background": "bg-slate-50",
+      "surface_glass": "bg-white/60 backdrop-blur-xl border-white/40 shadow-sm",
+      "text_primary": "text-slate-900",
+      "text_secondary": "text-slate-600",
+      "border": "border-slate-200/60"
+    },
+    "dark_mode": {
+      "background": "bg-[#0B0F19]",
+      "surface_glass": "bg-[#1E293B]/40 backdrop-blur-xl border-white/10 shadow-2xl",
+      "text_primary": "text-slate-50",
+      "text_secondary": "text-slate-400",
+      "border": "border-white/10"
+    },
+    "palette": {
+      "primary": {
+        "name": "Executive Navy",
+        "value": "#0F172A",
+        "tailwind": "bg-slate-900"
+      },
+      "accent": {
+        "name": "Electric Indigo",
+        "value": "#6366F1",
+        "tailwind": "bg-indigo-500 hover:bg-indigo-600"
+      },
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "danger": "#EF4444",
+      "info": "#3B82F6"
+    },
+    "gradients": {
+      "hero_glow": "bg-gradient-to-tr from-indigo-500/20 via-purple-500/10 to-transparent",
+      "card_shimmer": "bg-gradient-to-br from-white/10 to-white/0"
+    }
+  },
+  "layout_system": {
+    "grid_strategy": "The Bento Grid (Tetris Mode)",
+    "spacing": {
+      "container_padding": "p-6 md:p-8 lg:p-12",
+      "gap": "gap-6 md:gap-8",
+      "corner_radius": "rounded-2xl"
+    },
+    "dashboard_grid": "grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]"
+  },
+  "components": {
+    "glass_card": {
+      "classes": "relative overflow-hidden rounded-2xl border border-white/20 bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl shadow-lg transition-all hover:shadow-xl hover:-translate-y-1",
+      "instructions": "Use this class string for ALL main dashboard widgets. Do not use solid opaque cards."
+    },
+    "buttons": {
+      "primary": "h-11 px-8 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-95",
+      "secondary": "h-11 px-8 rounded-full bg-white/50 dark:bg-white/10 text-slate-900 dark:text-white border border-white/20 hover:bg-white/80 transition-all backdrop-blur-md"
+    },
+    "inputs": {
+      "glass": "bg-white/50 dark:bg-slate-900/50 border-white/20 dark:border-white/10 focus:ring-2 focus:ring-indigo-500/50 rounded-xl h-11 backdrop-blur-sm"
+    },
+    "navigation": {
+      "sidebar": "fixed left-0 top-0 h-full w-20 lg:w-64 bg-white/70 dark:bg-[#0F172A]/80 backdrop-blur-2xl border-r border-white/20 z-50 transition-all",
+      "topbar": "sticky top-0 z-40 w-full h-16 bg-white/70 dark:bg-[#0F172A]/70 backdrop-blur-lg border-b border-white/10"
+    }
+  },
+  "assets": {
+    "image_urls": {
+      "login_hero": "https://images.unsplash.com/photo-1764346075321-bf21e214b13f?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "dashboard_abstract": "https://images.unsplash.com/photo-1763259012676-6780139b4aad?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "team_avatars": [
+        "https://images.unsplash.com/photo-1758518731468-98e90ffd7430?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "https://images.unsplash.com/photo-1758518730523-c9f6336ebdae?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "https://images.unsplash.com/photo-1763550662603-78aa2f2033bf?crop=entropy&cs=srgb&fm=jpg&q=85"
+      ]
+    },
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 1.5px (Thin/Elegant)"
+    }
+  },
+  "visual_enhancers": {
+    "overlays": {
+      "noise": "pointer-events-none fixed inset-0 z-50 opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"
+    },
+    "charts": {
+      "library": "recharts",
+      "theme": {
+        "grid": "stroke-slate-200/20 stroke-dasharray-4",
+        "tooltip": "bg-white/90 backdrop-blur-md border-white/20 shadow-xl rounded-lg text-slate-900"
+      }
+    }
+  },
+  "universal_guidelines": [
+    "NEVER use generic 'blue-500' without purpose. Use the 'Electric Indigo' or 'Executive Navy'.",
+    "ALWAYS apply 'backdrop-blur-xl' to cards. Glassmorphism is the core identity.",
+    "Use 'Lato' font for ALL text. Import it in index.css.",
+    "Borders in Dark Mode must be 'border-white/10', never 'border-gray-800'.",
+    "Padding inside cards must be at least 'p-6'. Do not crowd data.",
+    "Use 'lucide-react' icons with stroke-width={1.5} for that premium thin look.",
+    "Charts must use the specific glass tooltip style defined in visual_enhancers.",
+    "All interactive elements must have a 'data-testid' attribute.",
+    "Do not use gradients for text. Keep text high-contrast and solid.",
+    "For the 'McKinsey' feel: Use uppercase, tracked-out labels (tracking-[0.2em]) for section headers."
+  ],
+  "page_specifics": {
+    "landing": "Hero section must use the 'abstract geometric glass' image as a subtle background. Login form should be a centered Glass Card.",
+    "dashboard": "Use the 'Tetris' grid. 12-column layout. Hero Metric cards span 3 cols. Main Chart spans 8 cols. Activity Feed spans 4 cols.",
+    "project_detail": "Header area should be transparent with large Lato Bold title. Tabs should be 'pill' style with motion layout.",
+    "resource_manager": "Use the Team Avatar images in a 'Facepile' or Grid view. Capacity bars should be thin and rounded-full."
+  }
+}
