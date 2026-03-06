@@ -72,7 +72,7 @@ const ProjectCreator = () => {
       <main className="ml-20 lg:ml-64 p-6 lg:p-8" data-testid="project-creator-main">
         {/* Header */}
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-medium mb-4">
             <Sparkles className="w-4 h-4" strokeWidth={1.5} />
             <span>AI-Powered</span>
           </div>
@@ -111,7 +111,7 @@ const ProjectCreator = () => {
                     <button
                       key={index}
                       onClick={() => setPrompt(example)}
-                      className="text-xs px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                      className="text-xs px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       data-testid={`example-prompt-${index}`}
                     >
                       {example.slice(0, 40)}...
@@ -129,7 +129,7 @@ const ProjectCreator = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Target className="w-5 h-5 text-indigo-500" strokeWidth={1.5} />
+                    <Target className="w-5 h-5 text-blue-500" strokeWidth={1.5} />
                     <Label htmlFor="milestones" className="text-slate-700 dark:text-slate-300">Include Milestones</Label>
                   </div>
                   <Switch
@@ -170,7 +170,7 @@ const ProjectCreator = () => {
             <Button
               onClick={handleGenerate}
               disabled={generating || !prompt.trim()}
-              className="w-full h-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-lg hover:shadow-xl hover:shadow-indigo-500/30 transition-all disabled:opacity-50"
+              className="w-full h-14 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold text-lg hover:shadow-xl hover:shadow-blue-500/30 transition-all disabled:opacity-50"
               data-testid="generate-button"
             >
               {generating ? (
@@ -191,8 +191,8 @@ const ProjectCreator = () => {
           <div className="space-y-6">
             {generating && (
               <div className="glass-card p-12 text-center animate-pulse" data-testid="generating-indicator">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-6">
-                  <Sparkles className="w-10 h-10 text-indigo-500 animate-pulse" strokeWidth={1.5} />
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center mx-auto mb-6">
+                  <Sparkles className="w-10 h-10 text-blue-500 animate-pulse" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">AI is Working...</h3>
                 <p className="text-slate-500 dark:text-slate-400">Generating your comprehensive project plan</p>
@@ -230,7 +230,7 @@ const ProjectCreator = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4">
-                      <div className="text-2xl font-bold text-indigo-600">{generatedProject.milestones?.length || 0}</div>
+                      <div className="text-2xl font-bold text-blue-600">{generatedProject.milestones?.length || 0}</div>
                       <div className="text-sm text-slate-500">Milestones</div>
                     </div>
                     <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4">
@@ -238,7 +238,7 @@ const ProjectCreator = () => {
                       <div className="text-sm text-slate-500">Tasks</div>
                     </div>
                     <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4">
-                      <div className="text-2xl font-bold text-purple-600">{generatedProject.stories?.length || 0}</div>
+                      <div className="text-2xl font-bold text-cyan-600">{generatedProject.stories?.length || 0}</div>
                       <div className="text-sm text-slate-500">User Stories</div>
                     </div>
                     <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4">
@@ -253,7 +253,7 @@ const ProjectCreator = () => {
                       <div className="space-y-2">
                         {generatedProject.phases.map((phase, index) => (
                           <div key={index} className="flex items-center gap-3 text-sm">
-                            <div className="w-6 h-6 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-600 font-medium text-xs">
+                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600 font-medium text-xs">
                               {index + 1}
                             </div>
                             <span className="text-slate-700 dark:text-slate-300">{phase.name}</span>
@@ -267,7 +267,7 @@ const ProjectCreator = () => {
 
                 <Button
                   onClick={handleViewProject}
-                  className="w-full h-12 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all"
+                  className="w-full h-12 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all"
                   data-testid="view-project-button"
                 >
                   View Full Project

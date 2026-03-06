@@ -127,7 +127,7 @@ Select a specific project for focused insights, or ask about your entire portfol
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-medium mb-2">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-medium mb-2">
               <Sparkles className="w-4 h-4" strokeWidth={1.5} />
               <span>AI-Powered</span>
             </div>
@@ -170,7 +170,7 @@ Select a specific project for focused insights, or ask about your entire portfol
                 >
                   <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center ${
                     message.role === 'assistant' 
-                      ? 'bg-gradient-to-br from-indigo-500 to-purple-600' 
+                      ? 'bg-gradient-to-br from-blue-500 to-cyan-600' 
                       : 'bg-slate-200 dark:bg-slate-700'
                   }`}>
                     {message.role === 'assistant' ? (
@@ -183,7 +183,7 @@ Select a specific project for focused insights, or ask about your entire portfol
                     <div className={`inline-block p-4 rounded-2xl max-w-[85%] ${
                       message.role === 'assistant'
                         ? 'bg-white dark:bg-slate-800/50 text-slate-700 dark:text-slate-200'
-                        : 'bg-indigo-600 text-white'
+                        : 'bg-blue-600 text-white'
                     }`}>
                       <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
                         {message.content}
@@ -195,7 +195,7 @@ Select a specific project for focused insights, or ask about your entire portfol
               
               {loading && (
                 <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
                     <Sparkles className="w-5 h-5 text-white" strokeWidth={1.5} />
                   </div>
                   <div className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl">
@@ -223,7 +223,7 @@ Select a specific project for focused insights, or ask about your entire portfol
                   <button
                     key={index}
                     onClick={() => handleSuggestedQuestion(question)}
-                    className="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 text-sm text-slate-600 dark:text-slate-400 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    className="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 text-sm text-slate-600 dark:text-slate-400 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     data-testid={`suggested-question-${index}`}
                   >
                     {question}
@@ -247,7 +247,7 @@ Select a specific project for focused insights, or ask about your entire portfol
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || loading}
-                className="h-[60px] w-[60px] rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                className="h-[60px] w-[60px] rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                 data-testid="send-button"
               >
                 {loading ? (

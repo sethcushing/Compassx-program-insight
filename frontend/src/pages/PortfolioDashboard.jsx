@@ -76,7 +76,7 @@ const PortfolioDashboard = () => {
         <Sidebar currentPage="portfolio" />
         <main className="flex-1 ml-20 lg:ml-64 p-6 lg:p-8 flex items-center justify-center">
           <div className="glass-card p-8 text-center">
-            <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
             <p className="text-slate-600 dark:text-slate-400">Loading portfolio...</p>
           </div>
         </main>
@@ -103,8 +103,8 @@ const PortfolioDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="glass-card p-5" data-testid="metric-total-projects">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                <Briefcase className="w-6 h-6 text-indigo-500" strokeWidth={1.5} />
+              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-blue-500" strokeWidth={1.5} />
               </div>
               <div>
                 <div className="text-3xl font-bold text-slate-900 dark:text-white">{projects.length}</div>
@@ -205,8 +205,8 @@ const PortfolioDashboard = () => {
                   <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="planned" fill="rgba(99, 102, 241, 0.3)" radius={[4, 4, 0, 0]} name="Planned" />
-                  <Bar dataKey="completed" fill="#6366f1" radius={[4, 4, 0, 0]} name="Completed" />
+                  <Bar dataKey="planned" fill="rgba(59, 130, 246, 0.3)" radius={[4, 4, 0, 0]} name="Planned" />
+                  <Bar dataKey="completed" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Completed" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -290,7 +290,7 @@ const PortfolioDashboard = () => {
                       <td className="py-4 px-4 text-right">
                         <Link 
                           to={`/project/${project.project_id}`}
-                          className="text-indigo-500 hover:text-indigo-600 font-medium text-sm"
+                          className="text-blue-500 hover:text-blue-600 font-medium text-sm"
                         >
                           View <ChevronRight className="w-4 h-4 inline" strokeWidth={1.5} />
                         </Link>

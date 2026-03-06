@@ -154,6 +154,55 @@ class StoryCreate(BaseModel):
     epic: Optional[str] = None
     priority: str = "medium"
     story_points: int = 0
+    acceptance_criteria: List[str] = []
+
+class StoryUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    epic: Optional[str] = None
+    priority: Optional[str] = None
+    story_points: Optional[int] = None
+    status: Optional[str] = None
+    acceptance_criteria: Optional[List[str]] = None
+
+class Risk(BaseModel):
+    risk_id: str = Field(default_factory=lambda: f"risk_{uuid.uuid4().hex[:12]}")
+    project_id: str
+    description: str
+    mitigation: str = ""
+    probability: str = "medium"  # low, medium, high
+    impact: str = "medium"  # low, medium, high
+    status: str = "open"  # open, mitigated, closed
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class RiskCreate(BaseModel):
+    project_id: str
+    description: str
+    mitigation: str = ""
+    probability: str = "medium"
+    impact: str = "medium"
+
+class RiskUpdate(BaseModel):
+    description: Optional[str] = None
+    mitigation: Optional[str] = None
+    probability: Optional[str] = None
+    impact: Optional[str] = None
+    status: Optional[str] = None
+
+class MilestoneUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    target_date: Optional[str] = None
+    health_status: Optional[str] = None
+    completed: Optional[bool] = None
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    start_date: Optional[str] = None
+    target_date: Optional[str] = None
 
 class Report(BaseModel):
     report_id: str = Field(default_factory=lambda: f"rpt_{uuid.uuid4().hex[:12]}")
@@ -361,10 +410,12 @@ async def get_project(project_id: str, user: User = Depends(get_current_user)):
     tasks = await db.tasks.find({"project_id": project_id}, {"_id": 0}).to_list(500)
     milestones = await db.milestones.find({"project_id": project_id}, {"_id": 0}).to_list(100)
     stories = await db.stories.find({"project_id": project_id}, {"_id": 0}).to_list(200)
+    risks = await db.risks.find({"project_id": project_id}, {"_id": 0}).to_list(100)
     
     project["tasks"] = tasks
     project["milestones"] = milestones
     project["stories"] = stories
+    project["risks"] = risks
     
     return project
 
@@ -379,6 +430,7 @@ async def delete_project(project_id: str, user: User = Depends(get_current_user)
     await db.tasks.delete_many({"project_id": project_id})
     await db.milestones.delete_many({"project_id": project_id})
     await db.stories.delete_many({"project_id": project_id})
+    await db.risks.delete_many({"project_id": project_id})
     
     return {"message": "Project deleted"}
 
@@ -509,7 +561,8 @@ async def create_story(story: StoryCreate, user: User = Depends(get_current_user
         description=story.description,
         epic=story.epic,
         priority=story.priority,
-        story_points=story.story_points
+        story_points=story.story_points,
+        acceptance_criteria=story.acceptance_criteria
     )
     
     doc = new_story.model_dump()
@@ -517,6 +570,119 @@ async def create_story(story: StoryCreate, user: User = Depends(get_current_user
     await db.stories.insert_one(doc)
     
     return {**doc, "_id": None}
+
+@api_router.patch("/stories/{story_id}", response_model=Dict)
+async def update_story(story_id: str, update: StoryUpdate, user: User = Depends(get_current_user)):
+    """Update a story"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.stories.update_one({"story_id": story_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Story not found")
+    
+    story = await db.stories.find_one({"story_id": story_id}, {"_id": 0})
+    return story
+
+@api_router.delete("/stories/{story_id}")
+async def delete_story(story_id: str, user: User = Depends(get_current_user)):
+    """Delete a story"""
+    result = await db.stories.delete_one({"story_id": story_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Story not found")
+    return {"message": "Story deleted"}
+
+# ================== RISK ROUTES ==================
+
+@api_router.get("/risks", response_model=List[Dict])
+async def get_risks(project_id: Optional[str] = None, user: User = Depends(get_current_user)):
+    """Get risks"""
+    query = {}
+    if project_id:
+        query["project_id"] = project_id
+    
+    risks = await db.risks.find(query, {"_id": 0}).to_list(200)
+    return risks
+
+@api_router.post("/risks", response_model=Dict)
+async def create_risk(risk: RiskCreate, user: User = Depends(get_current_user)):
+    """Create a risk"""
+    new_risk = Risk(
+        project_id=risk.project_id,
+        description=risk.description,
+        mitigation=risk.mitigation,
+        probability=risk.probability,
+        impact=risk.impact
+    )
+    
+    doc = new_risk.model_dump()
+    doc["created_at"] = doc["created_at"].isoformat()
+    await db.risks.insert_one(doc)
+    
+    return {**doc, "_id": None}
+
+@api_router.patch("/risks/{risk_id}", response_model=Dict)
+async def update_risk(risk_id: str, update: RiskUpdate, user: User = Depends(get_current_user)):
+    """Update a risk"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.risks.update_one({"risk_id": risk_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Risk not found")
+    
+    risk = await db.risks.find_one({"risk_id": risk_id}, {"_id": 0})
+    return risk
+
+@api_router.delete("/risks/{risk_id}")
+async def delete_risk(risk_id: str, user: User = Depends(get_current_user)):
+    """Delete a risk"""
+    result = await db.risks.delete_one({"risk_id": risk_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Risk not found")
+    return {"message": "Risk deleted"}
+
+# ================== MILESTONE ROUTES (EXTENDED) ==================
+
+@api_router.patch("/milestones/{milestone_id}", response_model=Dict)
+async def update_milestone(milestone_id: str, update: MilestoneUpdate, user: User = Depends(get_current_user)):
+    """Update a milestone"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.milestones.update_one({"milestone_id": milestone_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Milestone not found")
+    
+    milestone = await db.milestones.find_one({"milestone_id": milestone_id}, {"_id": 0})
+    return milestone
+
+@api_router.delete("/milestones/{milestone_id}")
+async def delete_milestone(milestone_id: str, user: User = Depends(get_current_user)):
+    """Delete a milestone"""
+    result = await db.milestones.delete_one({"milestone_id": milestone_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Milestone not found")
+    return {"message": "Milestone deleted"}
+
+# ================== PROJECT ROUTES (EXTENDED) ==================
+
+@api_router.patch("/projects/{project_id}", response_model=Dict)
+async def update_project(project_id: str, update: ProjectUpdate, user: User = Depends(get_current_user)):
+    """Update a project"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.projects.update_one({"project_id": project_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    project = await db.projects.find_one({"project_id": project_id}, {"_id": 0})
+    return project
 
 # ================== REPORT ROUTES ==================
 

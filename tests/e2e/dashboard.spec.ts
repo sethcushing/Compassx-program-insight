@@ -51,11 +51,12 @@ test.describe('Dashboard - Authenticated', () => {
     await expect(page.getByTestId('create-project-button')).toBeVisible({ timeout: 30000 });
   });
 
-  test('create project button navigates to project creator', async ({ page }) => {
+  test('create project button opens dialog', async ({ page }) => {
     await authenticateAndGoto(page, '/dashboard');
     await expect(page.getByTestId('create-project-button')).toBeVisible({ timeout: 30000 });
-    await page.getByTestId('create-project-button').click();
-    await expect(page).toHaveURL('/create');
+    await page.getByTestId('create-project-button').click({ force: true });
+    // Dialog should open with project name input
+    await expect(page.getByTestId('new-project-name')).toBeVisible({ timeout: 10000 });
   });
 
   test('dashboard shows velocity chart', async ({ page }) => {

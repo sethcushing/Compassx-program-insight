@@ -86,7 +86,7 @@ const ResourceManager = () => {
         <Sidebar currentPage="resources" />
         <main className="flex-1 ml-20 lg:ml-64 p-6 lg:p-8 flex items-center justify-center">
           <div className="glass-card p-8 text-center">
-            <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
             <p className="text-slate-600 dark:text-slate-400">Loading resources...</p>
           </div>
         </main>
@@ -188,7 +188,7 @@ const ResourceManager = () => {
                     data-testid="resource-availability"
                   />
                 </div>
-                <Button onClick={handleAddResource} className="w-full rounded-full bg-indigo-600" data-testid="submit-resource">
+                <Button onClick={handleAddResource} className="w-full rounded-full bg-blue-600" data-testid="submit-resource">
                   Add Resource
                 </Button>
               </div>
@@ -200,8 +200,8 @@ const ResourceManager = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="glass-card p-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                <Users className="w-5 h-5 text-indigo-500" strokeWidth={1.5} />
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-blue-500" strokeWidth={1.5} />
               </div>
               <div>
                 <div className="text-2xl font-bold text-slate-900 dark:text-white">{resources.length}</div>
@@ -256,7 +256,7 @@ const ResourceManager = () => {
             <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" strokeWidth={1.5} />
             <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">No Resources Yet</h3>
             <p className="text-slate-500 mb-6">Add team members to manage capacity.</p>
-            <Button onClick={() => setIsAddOpen(true)} className="rounded-full bg-indigo-600">
+            <Button onClick={() => setIsAddOpen(true)} className="rounded-full bg-blue-600">
               <Plus className="w-4 h-4 mr-2" strokeWidth={1.5} />
               Add First Resource
             </Button>
@@ -272,7 +272,7 @@ const ResourceManager = () => {
                     {resource.avatar ? (
                       <img src={resource.avatar} alt={resource.name} className="w-14 h-14 rounded-xl object-cover" />
                     ) : (
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xl font-bold">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center text-white text-xl font-bold">
                         {resource.name.charAt(0).toUpperCase()}
                       </div>
                     )}

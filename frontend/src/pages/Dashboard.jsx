@@ -5,6 +5,10 @@ import { API, useAuth, useTheme } from '../App';
 import { toast } from 'sonner';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line
 } from 'recharts';
@@ -39,7 +43,7 @@ const Sidebar = ({ currentPage }) => {
       {/* Logo */}
       <div className="h-16 flex items-center px-4 lg:px-6 border-b border-white/10">
         <Link to="/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-5 h-5 text-white" strokeWidth={1.5} />
           </div>
           <span className="hidden lg:block text-xl font-bold text-slate-900 dark:text-white tracking-tight">CompassX</span>
@@ -57,12 +61,12 @@ const Sidebar = ({ currentPage }) => {
                   to={item.href}
                   className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${
                     isActive
-                      ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                      ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
                   }`}
                   data-testid={`nav-${item.id}`}
                 >
-                  <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-indigo-500' : ''}`} strokeWidth={1.5} />
+                  <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-blue-500' : ''}`} strokeWidth={1.5} />
                   <span className="hidden lg:block font-medium">{item.label}</span>
                 </Link>
               </li>
@@ -101,7 +105,7 @@ const Sidebar = ({ currentPage }) => {
             {user.picture ? (
               <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full" />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center text-white text-sm font-medium">
                 {user.name?.[0]?.toUpperCase() || 'U'}
               </div>
             )}
@@ -117,9 +121,9 @@ const Sidebar = ({ currentPage }) => {
 };
 
 // Stat Card Component
-const StatCard = ({ icon: Icon, label, value, subValue, trend, color = 'indigo' }) => {
+const StatCard = ({ icon: Icon, label, value, subValue, trend, color = 'blue' }) => {
   const colorClasses = {
-    indigo: 'from-indigo-500 to-purple-600',
+    blue: 'from-blue-500 to-cyan-600',
     emerald: 'from-emerald-500 to-teal-600',
     amber: 'from-amber-500 to-orange-600',
     red: 'from-red-500 to-pink-600'
@@ -218,6 +222,14 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+  const [newProject, setNewProject] = useState({
+    name: '',
+    description: '',
+    priority: 'medium',
+    start_date: '',
+    target_date: ''
+  });
 
   useEffect(() => {
     loadDashboardData();
@@ -241,6 +253,22 @@ const Dashboard = () => {
     }
   };
 
+  const handleAddProject = async () => {
+    if (!newProject.name.trim()) {
+      toast.error('Project name is required');
+      return;
+    }
+    try {
+      const response = await axios.post(`${API}/projects`, newProject, { withCredentials: true });
+      toast.success('Project created successfully!');
+      setIsAddProjectOpen(false);
+      setNewProject({ name: '', description: '', priority: 'medium', start_date: '', target_date: '' });
+      navigate(`/project/${response.data.project_id}`);
+    } catch (error) {
+      toast.error('Failed to create project');
+    }
+  };
+
   const seedDemoData = async () => {
     try {
       await axios.post(`${API}/seed-demo-data`, {}, { withCredentials: true });
@@ -257,7 +285,7 @@ const Dashboard = () => {
         <Sidebar currentPage="dashboard" />
         <main className="flex-1 ml-20 lg:ml-64 p-6 lg:p-8 flex items-center justify-center">
           <div className="glass-card p-8 text-center">
-            <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
             <p className="text-slate-600 dark:text-slate-400">Loading dashboard...</p>
           </div>
         </main>
@@ -291,14 +319,86 @@ const Dashboard = () => {
                 Load Demo Data
               </Button>
             )}
-            <Button
-              onClick={() => navigate('/create')}
-              className="h-11 px-6 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
-              data-testid="create-project-button"
-            >
-              <Plus className="w-5 h-5 mr-2" strokeWidth={1.5} />
-              New Project
-            </Button>
+            <Dialog open={isAddProjectOpen} onOpenChange={setIsAddProjectOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  className="h-11 px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 transition-all"
+                  data-testid="create-project-button"
+                >
+                  <Plus className="w-5 h-5 mr-2" strokeWidth={1.5} />
+                  New Project
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create New Project</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Project Name *</label>
+                    <Input
+                      value={newProject.name}
+                      onChange={(e) => setNewProject(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter project name"
+                      className="rounded-xl"
+                      data-testid="new-project-name"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Description</label>
+                    <Textarea
+                      value={newProject.description}
+                      onChange={(e) => setNewProject(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Describe your project"
+                      className="rounded-xl"
+                      data-testid="new-project-description"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Priority</label>
+                    <Select value={newProject.priority} onValueChange={(value) => setNewProject(prev => ({ ...prev, priority: value }))}>
+                      <SelectTrigger className="rounded-xl" data-testid="new-project-priority">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="critical">Critical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Start Date</label>
+                      <Input
+                        type="date"
+                        value={newProject.start_date}
+                        onChange={(e) => setNewProject(prev => ({ ...prev, start_date: e.target.value }))}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Target Date</label>
+                      <Input
+                        type="date"
+                        value={newProject.target_date}
+                        onChange={(e) => setNewProject(prev => ({ ...prev, target_date: e.target.value }))}
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <Button onClick={handleAddProject} className="flex-1 rounded-full bg-blue-600" data-testid="submit-project">
+                      Create Project
+                    </Button>
+                    <Button variant="outline" onClick={() => navigate('/create')} className="flex-1 rounded-full">
+                      <Sparkles className="w-4 h-4 mr-2" /> Use AI Creator
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -309,7 +409,7 @@ const Dashboard = () => {
             label="Total Projects"
             value={stats?.projects?.total || 0}
             subValue={`${stats?.projects?.active || 0} active`}
-            color="indigo"
+            color="blue"
           />
           <StatCard
             icon={CheckCircle2}
@@ -331,7 +431,7 @@ const Dashboard = () => {
             label="Story Points"
             value={stats?.total_story_points || 0}
             subValue="total in backlog"
-            color="indigo"
+            color="blue"
           />
         </div>
 
@@ -346,11 +446,11 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-indigo-500" />
+                  <div className="w-3 h-3 rounded-full bg-blue-500" />
                   <span className="text-slate-500">Completed</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-indigo-500/30" />
+                  <div className="w-3 h-3 rounded-full bg-blue-500/30" />
                   <span className="text-slate-500">Planned</span>
                 </div>
               </div>
@@ -362,8 +462,8 @@ const Dashboard = () => {
                   <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="planned" fill="rgba(99, 102, 241, 0.3)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="completed" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="planned" fill="rgba(59, 130, 246, 0.3)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="completed" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -383,7 +483,7 @@ const Dashboard = () => {
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                   <Tooltip content={<CustomTooltip />} />
                   <Area type="monotone" dataKey="ideal" stroke="#94a3b8" strokeDasharray="4" fill="none" />
-                  <Area type="monotone" dataKey="remaining" stroke="#6366f1" fill="rgba(99, 102, 241, 0.2)" />
+                  <Area type="monotone" dataKey="remaining" stroke="#3b82f6" fill="rgba(59, 130, 246, 0.2)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -399,7 +499,7 @@ const Dashboard = () => {
               {[
                 { label: 'To Do', value: stats?.tasks?.todo || 0, color: 'bg-slate-500' },
                 { label: 'In Progress', value: stats?.tasks?.in_progress || 0, color: 'bg-blue-500' },
-                { label: 'In Review', value: stats?.tasks?.in_review || 0, color: 'bg-purple-500' },
+                { label: 'In Review', value: stats?.tasks?.in_review || 0, color: 'bg-cyan-500' },
                 { label: 'Done', value: stats?.tasks?.done || 0, color: 'bg-emerald-500' },
               ].map((item) => {
                 const total = (stats?.tasks?.todo || 0) + (stats?.tasks?.in_progress || 0) + (stats?.tasks?.in_review || 0) + (stats?.tasks?.done || 0);
@@ -423,7 +523,7 @@ const Dashboard = () => {
           <div className="lg:col-span-8" data-testid="projects-list">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">ACTIVE PROJECTS</h3>
-              <Link to="/portfolio" className="text-sm text-indigo-500 hover:text-indigo-600 font-medium">
+              <Link to="/portfolio" className="text-sm text-blue-500 hover:text-blue-600 font-medium">
                 View All <ChevronRight className="w-4 h-4 inline" strokeWidth={1.5} />
               </Link>
             </div>
@@ -437,7 +537,7 @@ const Dashboard = () => {
                   <Button onClick={seedDemoData} variant="outline" className="rounded-full" data-testid="empty-seed-button">
                     Load Demo Data
                   </Button>
-                  <Button onClick={() => navigate('/create')} className="rounded-full bg-indigo-600 text-white" data-testid="empty-create-button">
+                  <Button onClick={() => setIsAddProjectOpen(true)} className="rounded-full bg-blue-600 text-white" data-testid="empty-create-button">
                     <Plus className="w-4 h-4 mr-2" strokeWidth={1.5} />
                     Create Project
                   </Button>

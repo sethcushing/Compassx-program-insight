@@ -142,7 +142,7 @@ const AuthCallback = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B0F19]">
       <div className="glass-card p-8 text-center">
-        <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4" />
+        <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
         <p className="text-slate-600 dark:text-slate-400">Authenticating...</p>
       </div>
     </div>
@@ -158,7 +158,7 @@ const ProtectedRoute = ({ children }) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B0F19]">
         <div className="glass-card p-8 text-center">
-          <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-slate-600 dark:text-slate-400">Loading...</p>
         </div>
       </div>

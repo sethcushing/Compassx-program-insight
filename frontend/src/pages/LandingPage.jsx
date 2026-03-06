@@ -74,13 +74,13 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] relative overflow-hidden">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent pointer-events-none" />
       
       {/* Header */}
       <header className="glass-topbar">
         <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" strokeWidth={1.5} />
             </div>
             <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">CompassX</span>
@@ -101,7 +101,7 @@ const LandingPage = () => {
             <Button
               onClick={handleLogin}
               disabled={isLoggingIn}
-              className="h-11 px-6 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-95"
+              className="h-11 px-6 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 transition-all active:scale-95"
               data-testid="login-button"
             >
               {isLoggingIn ? 'Redirecting...' : 'Sign In'}
@@ -120,14 +120,14 @@ const LandingPage = () => {
               </div>
             )}
             
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-medium mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-medium mb-8">
               <Sparkles className="w-4 h-4" strokeWidth={1.5} />
               <span>AI-Native Project Intelligence</span>
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
               The Future of
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600"> Project Management</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-600"> Project Management</span>
             </h1>
             
             <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
@@ -138,7 +138,7 @@ const LandingPage = () => {
               <Button
                 onClick={handleLogin}
                 disabled={isLoggingIn}
-                className="h-14 px-10 rounded-full bg-indigo-600 text-white font-semibold text-lg hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-500/30 transition-all active:scale-95 group"
+                className="h-14 px-10 rounded-full bg-blue-600 text-white font-semibold text-lg hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-500/30 transition-all active:scale-95 group"
                 data-testid="hero-login-button"
               >
                 {isLoggingIn ? 'Redirecting...' : (
@@ -174,7 +174,7 @@ const LandingPage = () => {
                       <div className="flex items-end gap-2 h-24">
                         {[40, 55, 45, 65, 50, 70, 60, 80, 75, 85, 78, 90].map((h, i) => (
                           <div key={i} className="flex-1 bg-indigo-500/20 rounded-t" style={{ height: `${h}%` }}>
-                            <div className="w-full bg-indigo-500 rounded-t" style={{ height: '30%' }} />
+                            <div className="w-full bg-blue-500 rounded-t" style={{ height: '30%' }} />
                           </div>
                         ))}
                       </div>
@@ -184,9 +184,9 @@ const LandingPage = () => {
                       <div className="space-y-3">
                         {[85, 72, 90, 65].map((p, i) => (
                           <div key={i} className="flex items-center gap-3">
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500" />
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500" />
                             <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                              <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${p}%` }} />
+                              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${p}%` }} />
                             </div>
                           </div>
                         ))}
@@ -198,7 +198,7 @@ const LandingPage = () => {
             </div>
             
             {/* Glow effect */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-indigo-500/20 blur-3xl -z-10 opacity-50" />
+            <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 via-cyan-500/20 to-blue-500/20 blur-3xl -z-10 opacity-50" />
           </div>
         </section>
 
@@ -221,8 +221,8 @@ const LandingPage = () => {
                 style={{ animationDelay: `${index * 0.1}s` }}
                 data-testid={`feature-card-${index}`}
               >
-                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center mb-4">
-                  <feature.icon className="w-6 h-6 text-indigo-500" strokeWidth={1.5} />
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4">
+                  <feature.icon className="w-6 h-6 text-blue-500" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
                   {feature.title}
@@ -238,7 +238,7 @@ const LandingPage = () => {
         {/* CTA Section */}
         <section className="max-w-7xl mx-auto px-6 pb-32">
           <div className="glass-card p-12 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10" />
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-blue-500/10" />
             <div className="relative">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white tracking-tight mb-4">
                 Ready to Transform Your Projects?
@@ -249,7 +249,7 @@ const LandingPage = () => {
               <Button
                 onClick={handleLogin}
                 disabled={isLoggingIn}
-                className="h-14 px-10 rounded-full bg-indigo-600 text-white font-semibold text-lg hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-500/30 transition-all active:scale-95"
+                className="h-14 px-10 rounded-full bg-blue-600 text-white font-semibold text-lg hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-500/30 transition-all active:scale-95"
                 data-testid="cta-login-button"
               >
                 {isLoggingIn ? 'Redirecting...' : 'Sign In with Google'}

@@ -100,7 +100,7 @@ const SprintPlanner = () => {
         <Sidebar currentPage="sprint" />
         <main className="flex-1 ml-20 lg:ml-64 p-6 lg:p-8 flex items-center justify-center">
           <div className="glass-card p-8 text-center">
-            <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
             <p className="text-slate-600 dark:text-slate-400">Loading sprint board...</p>
           </div>
         </main>
@@ -203,7 +203,7 @@ const SprintPlanner = () => {
                                 {task.estimated_hours}h
                               </div>
                               {task.sprint && (
-                                <Badge className="bg-indigo-500/10 text-indigo-600 text-xs">{task.sprint}</Badge>
+                                <Badge className="bg-blue-500/10 text-blue-600 text-xs">{task.sprint}</Badge>
                               )}
                             </div>
                           </div>
