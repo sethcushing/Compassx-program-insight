@@ -1486,354 +1486,364 @@ async def get_change_management_dashboard(user: User = Depends(get_current_user)
 
 @api_router.post("/seed-demo-data")
 async def seed_demo_data(user: User = Depends(get_current_user)):
-    """Seed demo data for the platform"""
+    """Seed demo data for the platform - Custom team and projects"""
     
-    # Demo Projects
-    demo_projects = [
-        {
-            "project_id": f"proj_demo_{uuid.uuid4().hex[:8]}",
-            "name": "Mobile App Launch",
-            "description": "Launch a new mobile banking application with AI-powered financial insights and seamless user experience.",
-            "status": "active",
-            "priority": "high",
-            "start_date": "2025-01-15",
-            "target_date": "2025-06-30",
-            "created_by": user.user_id,
-            "team_members": [user.user_id],
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "ai_generated": False,
-            "phases": [
-                {"name": "Discovery", "order": 1, "duration_weeks": 3},
-                {"name": "Design", "order": 2, "duration_weeks": 4},
-                {"name": "Development", "order": 3, "duration_weeks": 12},
-                {"name": "Testing", "order": 4, "duration_weeks": 4},
-                {"name": "Launch", "order": 5, "duration_weeks": 2}
-            ]
-        },
-        {
-            "project_id": f"proj_demo_{uuid.uuid4().hex[:8]}",
-            "name": "Data Platform Modernization",
-            "description": "Migrate legacy data warehouse to a modern cloud-native data platform with real-time analytics capabilities.",
-            "status": "active",
-            "priority": "high",
-            "start_date": "2025-02-01",
-            "target_date": "2025-09-30",
-            "created_by": user.user_id,
-            "team_members": [user.user_id],
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "ai_generated": False,
-            "phases": [
-                {"name": "Assessment", "order": 1, "duration_weeks": 4},
-                {"name": "Architecture", "order": 2, "duration_weeks": 6},
-                {"name": "Migration", "order": 3, "duration_weeks": 16},
-                {"name": "Validation", "order": 4, "duration_weeks": 4},
-                {"name": "Cutover", "order": 5, "duration_weeks": 2}
-            ]
-        },
-        {
-            "project_id": f"proj_demo_{uuid.uuid4().hex[:8]}",
-            "name": "AI Chatbot Deployment",
-            "description": "Deploy an enterprise AI chatbot for customer support with multi-language support and sentiment analysis.",
-            "status": "planning",
-            "priority": "medium",
-            "start_date": "2025-03-01",
-            "target_date": "2025-07-31",
-            "created_by": user.user_id,
-            "team_members": [user.user_id],
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "ai_generated": False,
-            "phases": [
-                {"name": "Requirements", "order": 1, "duration_weeks": 2},
-                {"name": "Model Training", "order": 2, "duration_weeks": 8},
-                {"name": "Integration", "order": 3, "duration_weeks": 6},
-                {"name": "Pilot", "order": 4, "duration_weeks": 4},
-                {"name": "Rollout", "order": 5, "duration_weeks": 2}
-            ]
-        }
+    # Clear existing demo data first
+    await db.projects.delete_many({"created_by": user.user_id})
+    await db.tasks.delete_many({})
+    await db.stories.delete_many({})
+    await db.sprints.delete_many({})
+    await db.milestones.delete_many({})
+    await db.risks.delete_many({})
+    await db.resources.delete_many({})
+    await db.raid_items.delete_many({})
+    await db.weekly_updates.delete_many({})
+    await db.change_requests.delete_many({})
+    
+    # Team Members
+    team_members = [
+        {"name": "Paddy", "email": "paddy@compassx.com", "role": "Program Director", "skills": ["Strategy", "Leadership", "Stakeholder Management"], "availability": 100},
+        {"name": "Seth", "email": "seth@compassx.com", "role": "Technical Lead", "skills": ["Architecture", "Python", "Cloud", "Integration"], "availability": 100},
+        {"name": "Brian", "email": "brian@compassx.com", "role": "Senior Developer", "skills": ["React", "TypeScript", "API Design"], "availability": 100},
+        {"name": "Ashley", "email": "ashley@compassx.com", "role": "Product Manager", "skills": ["Agile", "Requirements", "User Research", "AI/ML"], "availability": 100},
+        {"name": "Fifi", "email": "fifi@compassx.com", "role": "Business Analyst", "skills": ["Data Analysis", "Process Design", "Requirements"], "availability": 100},
+        {"name": "Charlene", "email": "charlene@compassx.com", "role": "Change Manager", "skills": ["Change Management", "Training", "Communications"], "availability": 100},
+        {"name": "Sandeep", "email": "sandeep@compassx.com", "role": "QA Lead", "skills": ["Test Automation", "Performance Testing", "Security Testing"], "availability": 100}
     ]
     
-    for project in demo_projects:
-        await db.projects.update_one(
-            {"name": project["name"], "created_by": user.user_id},
-            {"$set": project},
-            upsert=True
-        )
-        
-        # Add sprints for each project
-        sprint_templates = [
-            {"name": "Sprint 1", "goal": "Foundation and setup", "status": "completed", "start_date": "2025-01-15", "end_date": "2025-01-29"},
-            {"name": "Sprint 2", "goal": "Core features development", "status": "completed", "start_date": "2025-01-30", "end_date": "2025-02-13"},
-            {"name": "Sprint 3", "goal": "Integration and testing", "status": "active", "start_date": "2025-02-14", "end_date": "2025-02-28"},
-            {"name": "Sprint 4", "goal": "Polish and optimization", "status": "planning", "start_date": "2025-03-01", "end_date": "2025-03-15"}
-        ]
-        
-        sprint_ids = []
-        for sprint in sprint_templates:
-            sprint_id = f"sprint_{uuid.uuid4().hex[:12]}"
-            sprint_ids.append(sprint_id)
-            sprint_doc = {
-                "sprint_id": sprint_id,
-                "project_id": project["project_id"],
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                **sprint
-            }
-            await db.sprints.update_one(
-                {"project_id": project["project_id"], "name": sprint["name"]},
-                {"$set": sprint_doc},
-                upsert=True
-            )
-        
-        # Get sprint IDs for this project
-        project_sprints = await db.sprints.find({"project_id": project["project_id"]}, {"_id": 0}).to_list(10)
-        sprint_id_map = {s["name"]: s["sprint_id"] for s in project_sprints}
-        
-        # Add stories with sprint assignments (no epics)
-        story_templates = [
-            {"title": "As a user, I want to login securely so that my data is protected", "status": "done", "story_points": 5, "sprint_name": "Sprint 1"},
-            {"title": "As a user, I want to reset my password so that I can recover access", "status": "done", "story_points": 3, "sprint_name": "Sprint 1"},
-            {"title": "As a user, I want to view my dashboard so that I can see my overview", "status": "done", "story_points": 8, "sprint_name": "Sprint 1"},
-            {"title": "As a user, I want to create projects so that I can organize my work", "status": "done", "story_points": 5, "sprint_name": "Sprint 2"},
-            {"title": "As a user, I want to add team members so that we can collaborate", "status": "done", "story_points": 5, "sprint_name": "Sprint 2"},
-            {"title": "As a PM, I want to track milestones so that I can monitor progress", "status": "in_progress", "story_points": 8, "sprint_name": "Sprint 3"},
-            {"title": "As a PM, I want to generate reports so that I can share status", "status": "in_progress", "story_points": 8, "sprint_name": "Sprint 3"},
-            {"title": "As a user, I want notifications so that I stay informed", "status": "ready", "story_points": 5, "sprint_name": "Sprint 3"},
-            {"title": "As a PM, I want AI insights so that I can make better decisions", "status": "backlog", "story_points": 13, "sprint_name": "Sprint 4"},
-            {"title": "As a user, I want to export data so that I can use it elsewhere", "status": "backlog", "story_points": 5, "sprint_name": "Sprint 4"}
-        ]
-        
-        for story in story_templates:
-            story_doc = {
-                "story_id": f"story_{uuid.uuid4().hex[:12]}",
-                "project_id": project["project_id"],
-                "title": story["title"],
-                "description": "User story description",
-                "status": story["status"],
-                "story_points": story["story_points"],
-                "priority": "high" if story["story_points"] >= 8 else "medium",
-                "sprint_id": sprint_id_map.get(story["sprint_name"]),
-                "acceptance_criteria": [
-                    "Feature works as expected",
-                    "Unit tests pass",
-                    "Code reviewed and approved"
-                ],
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
-            await db.stories.update_one(
-                {"project_id": project["project_id"], "title": story["title"]},
-                {"$set": story_doc},
-                upsert=True
-            )
-        
-        # Add milestones for each project
-        milestones = [
-            {"title": f"Phase 1 Complete", "description": "First phase deliverables", "target_date": "2025-02-15", "health_status": "on_track"},
-            {"title": f"MVP Ready", "description": "Minimum viable product complete", "target_date": "2025-04-30", "health_status": "on_track"},
-            {"title": f"Beta Launch", "description": "Beta release to selected users", "target_date": "2025-05-31", "health_status": "at_risk"},
-            {"title": f"Production Release", "description": "Full production deployment", "target_date": "2025-06-30", "health_status": "on_track"}
-        ]
-        
-        for ms in milestones:
-            ms_doc = {
-                "milestone_id": f"ms_{uuid.uuid4().hex[:12]}",
-                "project_id": project["project_id"],
-                **ms,
-                "completed": False,
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
-            await db.milestones.update_one(
-                {"project_id": project["project_id"], "title": ms["title"]},
-                {"$set": ms_doc},
-                upsert=True
-            )
-        
-        # Add tasks
-        task_templates = [
-            {"title": "Requirements gathering", "status": "done", "priority": "high", "estimated_hours": 16},
-            {"title": "Technical design document", "status": "done", "priority": "high", "estimated_hours": 24},
-            {"title": "Setup development environment", "status": "done", "priority": "medium", "estimated_hours": 8},
-            {"title": "Core API development", "status": "in_progress", "priority": "high", "estimated_hours": 40},
-            {"title": "Database schema design", "status": "done", "priority": "high", "estimated_hours": 12},
-            {"title": "Authentication module", "status": "in_progress", "priority": "high", "estimated_hours": 20},
-            {"title": "UI component library", "status": "in_progress", "priority": "medium", "estimated_hours": 32},
-            {"title": "Integration testing", "status": "todo", "priority": "high", "estimated_hours": 24},
-            {"title": "Performance optimization", "status": "todo", "priority": "medium", "estimated_hours": 16},
-            {"title": "Security audit", "status": "todo", "priority": "high", "estimated_hours": 20},
-            {"title": "Documentation", "status": "todo", "priority": "low", "estimated_hours": 12},
-            {"title": "User training materials", "status": "todo", "priority": "low", "estimated_hours": 8}
-        ]
-        
-        for task in task_templates:
-            task_doc = {
-                "task_id": f"task_{uuid.uuid4().hex[:12]}",
-                "project_id": project["project_id"],
-                "description": f"Complete {task['title'].lower()} for the project",
-                "actual_hours": 0,
-                "dependencies": [],
-                "sprint": "Sprint 1" if task["status"] in ["done", "in_progress"] else "Sprint 2",
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                **task
-            }
-            await db.tasks.update_one(
-                {"project_id": project["project_id"], "title": task["title"]},
-                {"$set": task_doc},
-                upsert=True
-            )
-    
-    # Demo Resources
-    demo_resources = [
-        {"name": "Sarah Chen", "email": "sarah.chen@compassx.com", "role": "Project Manager", "skills": ["Agile", "Scrum", "Stakeholder Management"], "availability": 100, "avatar": "https://images.unsplash.com/photo-1758518731468-98e90ffd7430?w=100"},
-        {"name": "Marcus Johnson", "email": "marcus.j@compassx.com", "role": "Tech Lead", "skills": ["Python", "AWS", "System Design"], "availability": 80, "avatar": "https://images.unsplash.com/photo-1758518730523-c9f6336ebdae?w=100"},
-        {"name": "Emily Rodriguez", "email": "emily.r@compassx.com", "role": "Senior Developer", "skills": ["React", "Node.js", "TypeScript"], "availability": 100, "avatar": "https://images.unsplash.com/photo-1763550662603-78aa2f2033bf?w=100"},
-        {"name": "David Kim", "email": "david.kim@compassx.com", "role": "Data Engineer", "skills": ["Spark", "Python", "SQL"], "availability": 60, "avatar": None},
-        {"name": "Lisa Wang", "email": "lisa.w@compassx.com", "role": "UX Designer", "skills": ["Figma", "User Research", "Prototyping"], "availability": 100, "avatar": None},
-        {"name": "James Miller", "email": "james.m@compassx.com", "role": "QA Engineer", "skills": ["Selenium", "API Testing", "Performance Testing"], "availability": 90, "avatar": None}
-    ]
-    
-    for resource in demo_resources:
+    resource_map = {}
+    for member in team_members:
         res_doc = {
             "resource_id": f"res_{uuid.uuid4().hex[:12]}",
             "pto_days": [],
             "user_id": None,
             "created_at": datetime.now(timezone.utc).isoformat(),
-            **resource
+            **member
         }
-        await db.resources.update_one(
-            {"email": resource["email"]},
-            {"$set": res_doc},
-            upsert=True
-        )
+        await db.resources.insert_one(res_doc)
+        resource_map[member["name"]] = res_doc["resource_id"]
     
-    # Seed RAID items, Weekly Updates, and Change Requests for first project
-    first_project = await db.projects.find_one({"name": "Mobile App Launch", "created_by": user.user_id}, {"_id": 0})
-    if first_project:
-        proj_id = first_project["project_id"]
+    # Projects with owners and production release focus
+    projects_config = [
+        {
+            "name": "BOM Grid v1.0",
+            "description": "Bill of Materials Grid application for manufacturing operations - comprehensive BOM management with real-time collaboration and approval workflows.",
+            "owner": "Fifi",
+            "status": "active",
+            "priority": "high",
+            "start_date": "2024-09-01",
+            "target_date": "2025-03-31",
+            "phases": [
+                {"name": "Discovery & Requirements", "order": 1, "duration_weeks": 4},
+                {"name": "Design & Architecture", "order": 2, "duration_weeks": 6},
+                {"name": "Development Sprint 1-4", "order": 3, "duration_weeks": 12},
+                {"name": "UAT & Bug Fixes", "order": 4, "duration_weeks": 4},
+                {"name": "Production Release", "order": 5, "duration_weeks": 2}
+            ]
+        },
+        {
+            "name": "Digital Intake Co-Pilot",
+            "description": "AI-powered digital intake system that streamlines customer onboarding with intelligent form completion and document processing.",
+            "owner": "Ashley",
+            "status": "active",
+            "priority": "high",
+            "start_date": "2024-10-15",
+            "target_date": "2025-04-15",
+            "phases": [
+                {"name": "AI Model Selection", "order": 1, "duration_weeks": 3},
+                {"name": "UX Design", "order": 2, "duration_weeks": 4},
+                {"name": "Core Development", "order": 3, "duration_weeks": 14},
+                {"name": "Integration Testing", "order": 4, "duration_weeks": 3},
+                {"name": "Production Release", "order": 5, "duration_weeks": 2}
+            ]
+        },
+        {
+            "name": "CPQ Reimagined",
+            "description": "Next-generation Configure-Price-Quote platform with AI-driven pricing recommendations and streamlined approval workflows.",
+            "owner": "Seth",
+            "status": "active",
+            "priority": "critical",
+            "start_date": "2024-08-01",
+            "target_date": "2025-02-28",
+            "phases": [
+                {"name": "Current State Analysis", "order": 1, "duration_weeks": 4},
+                {"name": "Solution Design", "order": 2, "duration_weeks": 6},
+                {"name": "Build & Configure", "order": 3, "duration_weeks": 16},
+                {"name": "Data Migration", "order": 4, "duration_weeks": 4},
+                {"name": "Production Release", "order": 5, "duration_weeks": 2}
+            ]
+        },
+        {
+            "name": "Code Red Tracker",
+            "description": "Critical incident management and escalation tracking system for real-time visibility into production issues and resolution status.",
+            "owner": "Seth",
+            "status": "active",
+            "priority": "high",
+            "start_date": "2024-11-01",
+            "target_date": "2025-03-15",
+            "phases": [
+                {"name": "Requirements & Design", "order": 1, "duration_weeks": 3},
+                {"name": "Core Development", "order": 2, "duration_weeks": 10},
+                {"name": "Integration", "order": 3, "duration_weeks": 4},
+                {"name": "Testing & Hardening", "order": 4, "duration_weeks": 3},
+                {"name": "Production Release", "order": 5, "duration_weeks": 2}
+            ]
+        },
+        {
+            "name": "Change Management Transformation",
+            "description": "Enterprise-wide change management platform transformation to improve change success rates and reduce deployment risks.",
+            "owner": "Charlene",
+            "status": "active",
+            "priority": "high",
+            "start_date": "2024-09-15",
+            "target_date": "2025-04-30",
+            "phases": [
+                {"name": "Change Readiness Assessment", "order": 1, "duration_weeks": 4},
+                {"name": "Process Design", "order": 2, "duration_weeks": 6},
+                {"name": "Platform Implementation", "order": 3, "duration_weeks": 14},
+                {"name": "Training & Adoption", "order": 4, "duration_weeks": 6},
+                {"name": "Production Release", "order": 5, "duration_weeks": 2}
+            ]
+        }
+    ]
+    
+    created_projects = []
+    
+    for proj_config in projects_config:
+        project_id = f"proj_{uuid.uuid4().hex[:12]}"
+        project = {
+            "project_id": project_id,
+            "name": proj_config["name"],
+            "description": proj_config["description"],
+            "status": proj_config["status"],
+            "priority": proj_config["priority"],
+            "start_date": proj_config["start_date"],
+            "target_date": proj_config["target_date"],
+            "created_by": user.user_id,
+            "team_members": [user.user_id],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "ai_generated": False,
+            "phases": proj_config["phases"],
+            "owner": proj_config["owner"]
+        }
+        await db.projects.insert_one(project)
+        created_projects.append({"project_id": project_id, "name": proj_config["name"], "owner": proj_config["owner"]})
         
-        # RAID Items - Roles
-        raid_roles = [
-            {"type": "role", "title": "Project Sponsor", "description": "Executive oversight and budget approval", "owner": "John Smith (VP Engineering)", "status": "open"},
-            {"type": "role", "title": "Technical Lead", "description": "Architecture decisions and technical guidance", "owner": "Marcus Johnson", "status": "open"},
-            {"type": "role", "title": "Scrum Master", "description": "Facilitate ceremonies and remove blockers", "owner": "Sarah Chen", "status": "open"},
-            {"type": "role", "title": "QA Lead", "description": "Quality assurance strategy and test planning", "owner": "James Miller", "status": "open"}
+        # Create sprints for production release prep
+        sprints = [
+            {"name": "Sprint 1", "goal": "Core functionality complete", "status": "completed"},
+            {"name": "Sprint 2", "goal": "Integration and data migration", "status": "completed"},
+            {"name": "Sprint 3", "goal": "UAT and bug fixes", "status": "active"},
+            {"name": "Sprint 4", "goal": "Production hardening and release prep", "status": "planning"}
         ]
         
-        # RAID Items - Assumptions, Issues, Dependencies
-        raid_others = [
-            {"type": "assumption", "title": "Cloud infrastructure available", "description": "AWS resources will be provisioned by IT by Jan 20", "owner": "DevOps Team", "status": "open"},
-            {"type": "assumption", "title": "Third-party API access", "description": "Payment gateway API credentials will be provided", "owner": "Vendor Relations", "status": "open"},
-            {"type": "issue", "title": "Database performance bottleneck", "description": "Current DB queries running slow on large datasets", "owner": "David Kim", "status": "open", "due_date": "2025-02-15"},
-            {"type": "issue", "title": "iOS certification delay", "description": "App Store review taking longer than expected", "owner": "Sarah Chen", "status": "open", "due_date": "2025-02-28"},
-            {"type": "dependency", "title": "Design system completion", "description": "UI components depend on finalized design system", "owner": "Lisa Wang", "status": "resolved"},
-            {"type": "dependency", "title": "Security audit sign-off", "description": "Launch blocked until security team approval", "owner": "Security Team", "status": "open", "due_date": "2025-03-15"}
+        sprint_map = {}
+        for i, sprint in enumerate(sprints):
+            sprint_id = f"sprint_{uuid.uuid4().hex[:12]}"
+            sprint_map[sprint["name"]] = sprint_id
+            await db.sprints.insert_one({
+                "sprint_id": sprint_id,
+                "project_id": project_id,
+                "name": sprint["name"],
+                "goal": sprint["goal"],
+                "status": sprint["status"],
+                "start_date": f"2025-0{i+1}-01",
+                "end_date": f"2025-0{i+1}-14",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        # Production Release Milestones
+        milestones = [
+            {"title": "Development Complete", "description": "All core features developed and code complete", "target_date": "2025-01-31", "health_status": "on_track", "completed": True},
+            {"title": "UAT Sign-off", "description": "User acceptance testing completed with sign-off from business stakeholders", "target_date": "2025-02-15", "health_status": "on_track", "completed": False},
+            {"title": "Performance Validation", "description": "Load testing and performance benchmarks met", "target_date": "2025-02-28", "health_status": "at_risk", "completed": False},
+            {"title": "Security Audit Complete", "description": "Security review and penetration testing passed", "target_date": "2025-03-07", "health_status": "on_track", "completed": False},
+            {"title": "Go-Live Readiness", "description": "All production checklists complete, runbooks approved", "target_date": "2025-03-14", "health_status": "on_track", "completed": False},
+            {"title": "Production Release", "description": "Successful deployment to production environment", "target_date": proj_config["target_date"], "health_status": "on_track", "completed": False}
         ]
         
-        for item in raid_roles + raid_others:
-            raid_doc = {
+        for ms in milestones:
+            await db.milestones.insert_one({
+                "milestone_id": f"ms_{uuid.uuid4().hex[:12]}",
+                "project_id": project_id,
+                **ms,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        # Production Release Stories
+        stories = [
+            {"title": "Complete production deployment runbook", "status": "in_progress", "story_points": 5, "sprint": "Sprint 3"},
+            {"title": "Implement monitoring and alerting", "status": "in_progress", "story_points": 8, "sprint": "Sprint 3"},
+            {"title": "Create rollback procedures", "status": "ready", "story_points": 5, "sprint": "Sprint 3"},
+            {"title": "Document API endpoints for support team", "status": "in_progress", "story_points": 3, "sprint": "Sprint 3"},
+            {"title": "Configure production environment variables", "status": "done", "story_points": 3, "sprint": "Sprint 3"},
+            {"title": "Set up production database with DR", "status": "done", "story_points": 8, "sprint": "Sprint 2"},
+            {"title": "Implement audit logging", "status": "done", "story_points": 5, "sprint": "Sprint 2"},
+            {"title": "Complete load testing scenarios", "status": "in_progress", "story_points": 8, "sprint": "Sprint 3"},
+            {"title": "Finalize user training materials", "status": "backlog", "story_points": 5, "sprint": "Sprint 4"},
+            {"title": "Execute production smoke tests", "status": "backlog", "story_points": 3, "sprint": "Sprint 4"}
+        ]
+        
+        for story in stories:
+            await db.stories.insert_one({
+                "story_id": f"story_{uuid.uuid4().hex[:12]}",
+                "project_id": project_id,
+                "title": story["title"],
+                "description": f"Production release preparation task",
+                "status": story["status"],
+                "story_points": story["story_points"],
+                "priority": "high" if story["story_points"] >= 8 else "medium",
+                "sprint_id": sprint_map.get(story["sprint"]),
+                "assigned_to": proj_config["owner"],
+                "acceptance_criteria": ["Completed and verified", "Documentation updated", "Peer reviewed"],
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        # Production Release Action Items
+        action_items = [
+            {"title": "Verify production credentials", "status": "done", "priority": "critical", "estimated_hours": 2, "assigned_to": "Seth"},
+            {"title": "Schedule change advisory board review", "status": "done", "priority": "high", "estimated_hours": 4, "assigned_to": "Charlene"},
+            {"title": "Prepare go-live communication", "status": "in_progress", "priority": "high", "estimated_hours": 8, "assigned_to": proj_config["owner"]},
+            {"title": "Complete security checklist", "status": "in_progress", "priority": "critical", "estimated_hours": 6, "assigned_to": "Sandeep"},
+            {"title": "Validate backup procedures", "status": "todo", "priority": "high", "estimated_hours": 4, "assigned_to": "Brian"},
+            {"title": "Review release notes", "status": "todo", "priority": "medium", "estimated_hours": 3, "assigned_to": proj_config["owner"]},
+            {"title": "Conduct dry-run deployment", "status": "todo", "priority": "critical", "estimated_hours": 8, "assigned_to": "Seth"},
+            {"title": "Notify stakeholders of release window", "status": "todo", "priority": "high", "estimated_hours": 2, "assigned_to": "Paddy"}
+        ]
+        
+        for task in action_items:
+            await db.tasks.insert_one({
+                "task_id": f"task_{uuid.uuid4().hex[:12]}",
+                "project_id": project_id,
+                "title": task["title"],
+                "description": f"Production release action item",
+                "status": task["status"],
+                "priority": task["priority"],
+                "estimated_hours": task["estimated_hours"],
+                "actual_hours": 0,
+                "assigned_to": task["assigned_to"],
+                "dependencies": [],
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        # Production Release Risks
+        risks = [
+            {"description": "Production environment capacity may not handle peak load", "mitigation": "Conduct load testing at 150% expected capacity, have auto-scaling configured", "probability": "medium", "impact": "high", "status": "open"},
+            {"description": "Third-party integration APIs may have downtime during release", "mitigation": "Coordinate with vendors on release schedule, implement circuit breakers", "probability": "low", "impact": "high", "status": "open"},
+            {"description": "Data migration may cause temporary data inconsistencies", "mitigation": "Run migration in phases with validation checkpoints, prepare rollback scripts", "probability": "medium", "impact": "medium", "status": "mitigated"},
+            {"description": "User adoption may be slower than expected", "mitigation": "Prepare comprehensive training, deploy in-app guidance, have support team ready", "probability": "medium", "impact": "medium", "status": "open"}
+        ]
+        
+        for risk in risks:
+            await db.risks.insert_one({
+                "risk_id": f"risk_{uuid.uuid4().hex[:12]}",
+                "project_id": project_id,
+                **risk,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        # RAID Items
+        raid_items = [
+            {"type": "role", "title": "Project Owner", "description": f"Overall accountability for project success and business outcomes", "owner": proj_config["owner"], "status": "open"},
+            {"type": "role", "title": "Technical Lead", "description": "Technical architecture and implementation decisions", "owner": "Seth", "status": "open"},
+            {"type": "role", "title": "QA Lead", "description": "Testing strategy and quality assurance", "owner": "Sandeep", "status": "open"},
+            {"type": "role", "title": "Change Manager", "description": "Change enablement and stakeholder communications", "owner": "Charlene", "status": "open"},
+            {"type": "role", "title": "Executive Sponsor", "description": "Executive oversight and escalation path", "owner": "Paddy", "status": "open"},
+            {"type": "assumption", "title": "Production infrastructure ready", "description": "Cloud infrastructure provisioned and configured by IT", "owner": "Seth", "status": "open"},
+            {"type": "assumption", "title": "Business users available for UAT", "description": "Key users allocated time for user acceptance testing", "owner": proj_config["owner"], "status": "open"},
+            {"type": "assumption", "title": "No major scope changes before release", "description": "Feature freeze in effect for production release", "owner": "Paddy", "status": "open"},
+            {"type": "issue", "title": "Performance testing environment availability", "description": "Need dedicated environment for load testing", "owner": "Brian", "status": "open", "due_date": "2025-02-20"},
+            {"type": "dependency", "title": "Security team sign-off", "description": "Production release blocked until security audit complete", "owner": "Sandeep", "status": "open", "due_date": "2025-03-07"},
+            {"type": "dependency", "title": "Change Advisory Board approval", "description": "CAB must approve production change request", "owner": "Charlene", "status": "open", "due_date": "2025-03-10"}
+        ]
+        
+        for item in raid_items:
+            await db.raid_items.insert_one({
                 "raid_id": f"raid_{uuid.uuid4().hex[:12]}",
-                "project_id": proj_id,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                **item
-            }
-            await db.raid_items.update_one(
-                {"project_id": proj_id, "title": item["title"]},
-                {"$set": raid_doc},
-                upsert=True
-            )
+                "project_id": project_id,
+                **item,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
         
         # Weekly Updates
         weekly_updates = [
             {
                 "week_start": "2025-02-03",
-                "whats_going_well": "Sprint velocity improved by 15%. Team morale is high. Core API endpoints completed ahead of schedule.",
-                "roadblocks": "iOS certification taking longer than expected. Need to escalate to Apple developer relations."
+                "whats_going_well": f"Core development complete. UAT feedback positive. Team velocity stable at 45 points/sprint.",
+                "roadblocks": "Performance testing environment not yet available. Working with infrastructure team to expedite."
             },
             {
                 "week_start": "2025-02-10",
-                "whats_going_well": "Authentication module completed. UI component library 80% done. Positive feedback from stakeholder demo.",
-                "roadblocks": "Database performance issues on large queries. Data team investigating. Payment gateway integration delayed due to missing credentials."
+                "whats_going_well": f"UAT 80% complete with no critical defects. Security scan passed. Runbooks drafted.",
+                "roadblocks": "Two medium-priority bugs found in UAT requiring fixes. Estimated 3 days additional work."
             },
             {
                 "week_start": "2025-02-17",
-                "whats_going_well": "Database issues resolved with indexing strategy. Payment gateway credentials received. On track for MVP milestone.",
-                "roadblocks": "Two team members out sick this week affecting sprint capacity. May need to deprioritize some nice-to-have features."
+                "whats_going_well": f"All UAT bugs resolved. Load testing scheduled. Change request submitted to CAB.",
+                "roadblocks": "Vendor API documentation outdated - working directly with vendor support to resolve."
             }
         ]
         
         for update in weekly_updates:
-            update_doc = {
+            await db.weekly_updates.insert_one({
                 "update_id": f"update_{uuid.uuid4().hex[:12]}",
-                "project_id": proj_id,
+                "project_id": project_id,
+                "week_start": update["week_start"],
+                "whats_going_well": update["whats_going_well"],
+                "roadblocks": update["roadblocks"],
                 "created_by": user.user_id,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                **update
-            }
-            await db.weekly_updates.update_one(
-                {"project_id": proj_id, "week_start": update["week_start"]},
-                {"$set": update_doc},
-                upsert=True
-            )
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
         
-        # Change Requests
+        # Change Requests for Production Release
         change_requests = [
             {
-                "title": "Add biometric authentication",
-                "description": "Implement Face ID and fingerprint login for enhanced security and user convenience",
+                "title": f"{proj_config['name']} - Production Release v1.0",
+                "description": f"Initial production deployment of {proj_config['name']} including all core functionality",
                 "change_type": "feature",
-                "impact": "medium",
-                "risk_level": "low",
-                "status": "approved",
-                "target_date": "2025-03-15",
-                "rollback_plan": "Disable biometric auth flag, users fall back to password login"
-            },
-            {
-                "title": "Database migration to PostgreSQL",
-                "description": "Migrate from MongoDB to PostgreSQL for better relational data support",
-                "change_type": "infrastructure",
-                "impact": "critical",
-                "risk_level": "high",
-                "status": "pending_review",
-                "target_date": "2025-04-01",
-                "rollback_plan": "Maintain MongoDB backup, switch connection string back to Mongo cluster"
-            },
-            {
-                "title": "Real-time notifications system",
-                "description": "Implement WebSocket-based push notifications for instant updates",
-                "change_type": "enhancement",
-                "impact": "medium",
+                "impact": "high",
                 "risk_level": "medium",
-                "status": "draft",
-                "target_date": "2025-03-30",
-                "rollback_plan": "Fall back to polling-based notification fetch every 30 seconds"
+                "status": "pending_review",
+                "target_date": proj_config["target_date"],
+                "rollback_plan": "Automated rollback script to previous version, database restore from pre-release backup"
             },
             {
-                "title": "Performance optimization release",
-                "description": "Bundle of performance improvements including lazy loading, caching, and code splitting",
-                "change_type": "enhancement",
-                "impact": "low",
-                "risk_level": "low",
-                "status": "implemented",
-                "target_date": "2025-02-01",
-                "implementation_date": "2025-02-01",
-                "rollback_plan": "Revert to previous build version v1.2.3"
+                "title": f"Database schema migration for {proj_config['name']}",
+                "description": "Production database schema changes required for v1.0 release",
+                "change_type": "infrastructure",
+                "impact": "high",
+                "risk_level": "medium",
+                "status": "approved",
+                "target_date": proj_config["target_date"],
+                "rollback_plan": "Reverse migration scripts tested and ready, point-in-time recovery enabled"
             }
         ]
         
         for cr in change_requests:
-            cr_doc = {
+            await db.change_requests.insert_one({
                 "change_id": f"cr_{uuid.uuid4().hex[:12]}",
-                "project_id": proj_id,
+                "project_id": project_id,
+                "title": cr["title"],
+                "description": cr["description"],
+                "change_type": cr["change_type"],
+                "impact": cr["impact"],
+                "risk_level": cr["risk_level"],
+                "status": cr["status"],
+                "target_date": cr["target_date"],
+                "rollback_plan": cr["rollback_plan"],
                 "requested_by": user.user_id,
-                "approved_by": user.user_id if cr["status"] in ["approved", "implemented"] else None,
+                "approved_by": user.user_id if cr["status"] == "approved" else None,
+                "implementation_date": None,
                 "created_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-                **cr
-            }
-            await db.change_requests.update_one(
-                {"project_id": proj_id, "title": cr["title"]},
-                {"$set": cr_doc},
-                upsert=True
-            )
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            })
     
-    return {"message": "Demo data seeded successfully", "projects": len(demo_projects), "resources": len(demo_resources), "raid_items": 10, "weekly_updates": 3, "change_requests": 4}
+    return {
+        "message": "Demo data seeded successfully",
+        "team_members": len(team_members),
+        "projects": len(created_projects),
+        "projects_created": [p["name"] for p in created_projects]
+    }
 
 # ================== SETUP ==================
 
