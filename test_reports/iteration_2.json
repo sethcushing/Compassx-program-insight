@@ -1,0 +1,49 @@
+{
+  "timestamp": "2025-12-06T21:30:00Z",
+  "test_suite": "New Features - Action Items, Weekly Updates, RAID Log, Change Management",
+  "changes_made": {
+    "backend": [
+      "Added WeeklyUpdate model and CRUD endpoints",
+      "Added RAIDItem model and CRUD endpoints",
+      "Added ChangeRequest model and CRUD endpoints",
+      "Added /change-management/dashboard endpoint",
+      "Updated seed_demo_data to include RAID items, weekly updates, change requests",
+      "Removed epic field from stories in seed data"
+    ],
+    "frontend": [
+      "Renamed 'Tasks' to 'Action Items' throughout",
+      "Added WeeklyUpdatesSection component to Project Overview tab",
+      "Added RAIDLogSection component with role/assumption/issue/dependency filters",
+      "Added ChangeManagementSection component to Project detail",
+      "Created ChangeManagementDashboard page (/changes)",
+      "Added Change Management to sidebar navigation"
+    ]
+  },
+  "backend_tests": {
+    "total": 15,
+    "passed": 15,
+    "failed": 0,
+    "tests": [
+      {"name": "Projects CRUD", "status": "PASS"},
+      {"name": "Tasks/Action Items CRUD", "status": "PASS"},
+      {"name": "Stories CRUD", "status": "PASS"},
+      {"name": "Sprints CRUD", "status": "PASS"},
+      {"name": "Milestones CRUD", "status": "PASS"},
+      {"name": "Risks CRUD", "status": "PASS"},
+      {"name": "Resources CRUD", "status": "PASS"},
+      {"name": "Dashboard Stats", "status": "PASS"},
+      {"name": "Story-Sprint Assignment", "status": "PASS"},
+      {"name": "Weekly Updates Create", "status": "PASS"},
+      {"name": "Weekly Updates Get/Update/Delete", "status": "PASS"},
+      {"name": "RAID Items Create", "status": "PASS"},
+      {"name": "RAID Items Get/Update/Delete", "status": "PASS"},
+      {"name": "Change Requests CRUD", "status": "PASS"},
+      {"name": "Change Management Dashboard", "status": "PASS"}
+    ]
+  },
+  "frontend_status": {
+    "landing_page": "PASS",
+    "build": "PASS - No syntax errors"
+  },
+  "retest_needed": false
+}

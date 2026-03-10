@@ -16,8 +16,676 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import {
   ArrowLeft, Target, ListTodo, BookOpen, Calendar, Clock, AlertTriangle,
   CheckCircle2, Circle, Play, Pause, Plus, Edit2, Trash2,
-  Sparkles, TrendingUp, ShieldAlert, X
+  Sparkles, TrendingUp, ShieldAlert, X, Users, FileText, GitBranch, 
+  CheckSquare, XSquare, ThumbsUp, ThumbsDown, FileCheck, Rocket
 } from 'lucide-react';
+
+// ============ WEEKLY UPDATES COMPONENT ============
+const WeeklyUpdatesSection = ({ projectId }) => {
+  const [updates, setUpdates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newUpdate, setNewUpdate] = useState({ week_start: '', whats_going_well: '', roadblocks: '' });
+  const [editingUpdate, setEditingUpdate] = useState(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  useEffect(() => {
+    loadUpdates();
+  }, [projectId]);
+
+  const loadUpdates = async () => {
+    try {
+      const res = await axios.get(`${API}/weekly-updates?project_id=${projectId}`, { withCredentials: true });
+      setUpdates(res.data);
+    } catch (err) {
+      console.error('Error loading weekly updates:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!newUpdate.week_start) {
+      toast.error('Please select a week');
+      return;
+    }
+    try {
+      await axios.post(`${API}/weekly-updates`, { project_id: projectId, ...newUpdate }, { withCredentials: true });
+      toast.success('Weekly update added');
+      setIsAddOpen(false);
+      setNewUpdate({ week_start: '', whats_going_well: '', roadblocks: '' });
+      loadUpdates();
+    } catch (err) {
+      toast.error('Failed to add update');
+    }
+  };
+
+  const handleEdit = async () => {
+    try {
+      await axios.patch(`${API}/weekly-updates/${editingUpdate.update_id}`, {
+        whats_going_well: editingUpdate.whats_going_well,
+        roadblocks: editingUpdate.roadblocks
+      }, { withCredentials: true });
+      toast.success('Update saved');
+      setIsEditOpen(false);
+      loadUpdates();
+    } catch (err) {
+      toast.error('Failed to save update');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API}/weekly-updates/${id}`, { withCredentials: true });
+      toast.success('Update deleted');
+      loadUpdates();
+    } catch (err) {
+      toast.error('Failed to delete update');
+    }
+  };
+
+  const formatWeek = (dateStr) => {
+    const d = new Date(dateStr);
+    return `Week of ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  };
+
+  return (
+    <div className="glass-card p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">WEEKLY UPDATES</h3>
+        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="rounded-full bg-blue-600 text-white">
+              <Plus className="w-4 h-4 mr-2" /> Add Update
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader><DialogTitle>Add Weekly Update</DialogTitle></DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Week Starting *</label>
+                <Input type="date" value={newUpdate.week_start} onChange={(e) => setNewUpdate(p => ({ ...p, week_start: e.target.value }))} className="rounded-xl" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> What's Going Well
+                </label>
+                <Textarea value={newUpdate.whats_going_well} onChange={(e) => setNewUpdate(p => ({ ...p, whats_going_well: e.target.value }))} placeholder="Wins, progress, positive updates..." className="rounded-xl min-h-[100px]" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" /> Roadblocks / Issues
+                </label>
+                <Textarea value={newUpdate.roadblocks} onChange={(e) => setNewUpdate(p => ({ ...p, roadblocks: e.target.value }))} placeholder="Blockers, risks, concerns..." className="rounded-xl min-h-[100px]" />
+              </div>
+              <Button onClick={handleAdd} className="w-full rounded-full bg-blue-600">Add Update</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-8 text-slate-500">Loading updates...</div>
+      ) : updates.length === 0 ? (
+        <div className="text-center py-8">
+          <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-500">No weekly updates yet. Start tracking your project health!</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {updates.map((update) => (
+            <div key={update.update_id} className="border border-slate-200 dark:border-white/10 rounded-xl p-4 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-semibold text-blue-600">{formatWeek(update.week_start)}</span>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => { setEditingUpdate({...update}); setIsEditOpen(true); }}>
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Update?</AlertDialogTitle>
+                        <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(update.update_id)} className="bg-red-500">Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm mb-2">
+                    <CheckCircle2 className="w-4 h-4" /> Going Well
+                  </div>
+                  <p className="text-sm text-slate-700 dark:text-slate-300">{update.whats_going_well || 'No updates'}</p>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-500/10 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-amber-600 font-medium text-sm mb-2">
+                    <AlertTriangle className="w-4 h-4" /> Roadblocks
+                  </div>
+                  <p className="text-sm text-slate-700 dark:text-slate-300">{update.roadblocks || 'None reported'}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader><DialogTitle>Edit Weekly Update</DialogTitle></DialogHeader>
+          {editingUpdate && (
+            <div className="space-y-4 mt-4">
+              <div className="text-sm text-slate-500 font-medium">{formatWeek(editingUpdate.week_start)}</div>
+              <div>
+                <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> What's Going Well
+                </label>
+                <Textarea value={editingUpdate.whats_going_well || ''} onChange={(e) => setEditingUpdate(p => ({ ...p, whats_going_well: e.target.value }))} className="rounded-xl min-h-[100px]" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" /> Roadblocks / Issues
+                </label>
+                <Textarea value={editingUpdate.roadblocks || ''} onChange={(e) => setEditingUpdate(p => ({ ...p, roadblocks: e.target.value }))} className="rounded-xl min-h-[100px]" />
+              </div>
+              <Button onClick={handleEdit} className="w-full rounded-full bg-blue-600">Save Changes</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+// ============ RAID LOG COMPONENT ============
+const RAIDLogSection = ({ projectId }) => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [activeType, setActiveType] = useState('all');
+  const [newItem, setNewItem] = useState({ type: 'role', title: '', description: '', owner: '', due_date: '' });
+  const [editingItem, setEditingItem] = useState(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  useEffect(() => {
+    loadItems();
+  }, [projectId]);
+
+  const loadItems = async () => {
+    try {
+      const res = await axios.get(`${API}/raid-items?project_id=${projectId}`, { withCredentials: true });
+      setItems(res.data);
+    } catch (err) {
+      console.error('Error loading RAID items:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!newItem.title.trim()) {
+      toast.error('Title is required');
+      return;
+    }
+    try {
+      await axios.post(`${API}/raid-items`, { project_id: projectId, ...newItem }, { withCredentials: true });
+      toast.success('RAID item added');
+      setIsAddOpen(false);
+      setNewItem({ type: 'role', title: '', description: '', owner: '', due_date: '' });
+      loadItems();
+    } catch (err) {
+      toast.error('Failed to add item');
+    }
+  };
+
+  const handleEdit = async () => {
+    try {
+      await axios.patch(`${API}/raid-items/${editingItem.raid_id}`, {
+        title: editingItem.title,
+        description: editingItem.description,
+        owner: editingItem.owner,
+        status: editingItem.status,
+        due_date: editingItem.due_date
+      }, { withCredentials: true });
+      toast.success('Item updated');
+      setIsEditOpen(false);
+      loadItems();
+    } catch (err) {
+      toast.error('Failed to update item');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API}/raid-items/${id}`, { withCredentials: true });
+      toast.success('Item deleted');
+      loadItems();
+    } catch (err) {
+      toast.error('Failed to delete item');
+    }
+  };
+
+  const filteredItems = activeType === 'all' ? items : items.filter(i => i.type === activeType);
+  
+  const typeConfig = {
+    role: { label: 'Roles & Responsibilities', icon: Users, color: 'blue' },
+    assumption: { label: 'Assumptions', icon: FileText, color: 'purple' },
+    issue: { label: 'Issues', icon: AlertTriangle, color: 'red' },
+    dependency: { label: 'Dependencies', icon: GitBranch, color: 'amber' }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header and Filters */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap gap-2">
+          <Button variant={activeType === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setActiveType('all')} className="rounded-full">
+            All ({items.length})
+          </Button>
+          {Object.entries(typeConfig).map(([key, cfg]) => {
+            const count = items.filter(i => i.type === key).length;
+            return (
+              <Button key={key} variant={activeType === key ? 'default' : 'outline'} size="sm" onClick={() => setActiveType(key)} className="rounded-full">
+                <cfg.icon className="w-4 h-4 mr-1" /> {cfg.label.split(' ')[0]} ({count})
+              </Button>
+            );
+          })}
+        </div>
+        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <DialogTrigger asChild>
+            <Button className="rounded-full bg-blue-600 text-white">
+              <Plus className="w-4 h-4 mr-2" /> Add Item
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader><DialogTitle>Add RAID Item</DialogTitle></DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Type *</label>
+                <Select value={newItem.type} onValueChange={(v) => setNewItem(p => ({ ...p, type: v }))}>
+                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="role">Role / Responsibility</SelectItem>
+                    <SelectItem value="assumption">Assumption</SelectItem>
+                    <SelectItem value="issue">Issue</SelectItem>
+                    <SelectItem value="dependency">Dependency</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Title *</label>
+                <Input value={newItem.title} onChange={(e) => setNewItem(p => ({ ...p, title: e.target.value }))} placeholder="Title" className="rounded-xl" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Description</label>
+                <Textarea value={newItem.description} onChange={(e) => setNewItem(p => ({ ...p, description: e.target.value }))} placeholder="Details..." className="rounded-xl" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Owner</label>
+                  <Input value={newItem.owner} onChange={(e) => setNewItem(p => ({ ...p, owner: e.target.value }))} placeholder="Assigned to" className="rounded-xl" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Due Date</label>
+                  <Input type="date" value={newItem.due_date} onChange={(e) => setNewItem(p => ({ ...p, due_date: e.target.value }))} className="rounded-xl" />
+                </div>
+              </div>
+              <Button onClick={handleAdd} className="w-full rounded-full bg-blue-600">Add Item</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Items List */}
+      {loading ? (
+        <div className="text-center py-8 text-slate-500">Loading...</div>
+      ) : filteredItems.length === 0 ? (
+        <div className="glass-card p-12 text-center">
+          <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <p className="text-slate-500">No RAID items found. Add your first item!</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredItems.map((item) => {
+            const cfg = typeConfig[item.type];
+            const Icon = cfg.icon;
+            return (
+              <div key={item.raid_id} className="glass-card p-4 hover:shadow-md transition-all">
+                <div className="flex items-start gap-4">
+                  <div className={`w-10 h-10 rounded-xl bg-${cfg.color}-500/10 flex items-center justify-center flex-shrink-0`}>
+                    <Icon className={`w-5 h-5 text-${cfg.color}-500`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="font-semibold text-slate-900 dark:text-white">{item.title}</h4>
+                      <div className="flex items-center gap-2">
+                        <Badge className={item.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-600' : item.status === 'closed' ? 'bg-slate-500/20 text-slate-600' : 'bg-amber-500/20 text-amber-600'}>
+                          {item.status}
+                        </Badge>
+                        <Button variant="ghost" size="sm" onClick={() => { setEditingItem({...item}); setIsEditOpen(true); }}>
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Item?</AlertDialogTitle>
+                              <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(item.raid_id)} className="bg-red-500">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                    {item.description && <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{item.description}</p>}
+                    <div className="flex items-center gap-4 text-xs text-slate-400">
+                      {item.owner && <span>Owner: {item.owner}</span>}
+                      {item.due_date && <span>Due: {new Date(item.due_date).toLocaleDateString()}</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Edit RAID Item</DialogTitle></DialogHeader>
+          {editingItem && (
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Title</label>
+                <Input value={editingItem.title} onChange={(e) => setEditingItem(p => ({ ...p, title: e.target.value }))} className="rounded-xl" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Description</label>
+                <Textarea value={editingItem.description || ''} onChange={(e) => setEditingItem(p => ({ ...p, description: e.target.value }))} className="rounded-xl" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Owner</label>
+                  <Input value={editingItem.owner || ''} onChange={(e) => setEditingItem(p => ({ ...p, owner: e.target.value }))} className="rounded-xl" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Status</label>
+                  <Select value={editingItem.status} onValueChange={(v) => setEditingItem(p => ({ ...p, status: v }))}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Due Date</label>
+                <Input type="date" value={editingItem.due_date || ''} onChange={(e) => setEditingItem(p => ({ ...p, due_date: e.target.value }))} className="rounded-xl" />
+              </div>
+              <Button onClick={handleEdit} className="w-full rounded-full bg-blue-600">Save Changes</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+// ============ CHANGE MANAGEMENT COMPONENT ============
+const ChangeManagementSection = ({ projectId }) => {
+  const [changes, setChanges] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newChange, setNewChange] = useState({
+    title: '', description: '', change_type: 'feature', impact: 'medium', risk_level: 'medium', target_date: '', rollback_plan: ''
+  });
+  const [editingChange, setEditingChange] = useState(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  useEffect(() => {
+    loadChanges();
+  }, [projectId]);
+
+  const loadChanges = async () => {
+    try {
+      const res = await axios.get(`${API}/change-requests?project_id=${projectId}`, { withCredentials: true });
+      setChanges(res.data);
+    } catch (err) {
+      console.error('Error loading changes:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!newChange.title.trim()) {
+      toast.error('Title is required');
+      return;
+    }
+    try {
+      await axios.post(`${API}/change-requests`, { project_id: projectId, ...newChange }, { withCredentials: true });
+      toast.success('Change request created');
+      setIsAddOpen(false);
+      setNewChange({ title: '', description: '', change_type: 'feature', impact: 'medium', risk_level: 'medium', target_date: '', rollback_plan: '' });
+      loadChanges();
+    } catch (err) {
+      toast.error('Failed to create change request');
+    }
+  };
+
+  const handleStatusChange = async (changeId, newStatus) => {
+    try {
+      await axios.patch(`${API}/change-requests/${changeId}`, { status: newStatus }, { withCredentials: true });
+      toast.success(`Change request ${newStatus}`);
+      loadChanges();
+    } catch (err) {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API}/change-requests/${id}`, { withCredentials: true });
+      toast.success('Change request deleted');
+      loadChanges();
+    } catch (err) {
+      toast.error('Failed to delete');
+    }
+  };
+
+  const statusConfig = {
+    draft: { label: 'Draft', color: 'slate', icon: FileText },
+    pending_review: { label: 'Pending Review', color: 'amber', icon: Clock },
+    approved: { label: 'Approved', color: 'emerald', icon: CheckCircle2 },
+    rejected: { label: 'Rejected', color: 'red', icon: XSquare },
+    implemented: { label: 'Implemented', color: 'blue', icon: Rocket }
+  };
+
+  const impactColors = {
+    low: 'bg-slate-500/20 text-slate-600',
+    medium: 'bg-amber-500/20 text-amber-600',
+    high: 'bg-orange-500/20 text-orange-600',
+    critical: 'bg-red-500/20 text-red-600'
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <DialogTrigger asChild>
+            <Button className="rounded-full bg-blue-600 text-white">
+              <Plus className="w-4 h-4 mr-2" /> Create Change Request
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader><DialogTitle>New Change Request</DialogTitle></DialogHeader>
+            <div className="space-y-4 mt-4 max-h-[60vh] overflow-y-auto pr-2">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Title *</label>
+                <Input value={newChange.title} onChange={(e) => setNewChange(p => ({ ...p, title: e.target.value }))} placeholder="Change title" className="rounded-xl" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Description</label>
+                <Textarea value={newChange.description} onChange={(e) => setNewChange(p => ({ ...p, description: e.target.value }))} placeholder="Describe the change..." className="rounded-xl min-h-[80px]" />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Type</label>
+                  <Select value={newChange.change_type} onValueChange={(v) => setNewChange(p => ({ ...p, change_type: v }))}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="feature">Feature</SelectItem>
+                      <SelectItem value="enhancement">Enhancement</SelectItem>
+                      <SelectItem value="bugfix">Bug Fix</SelectItem>
+                      <SelectItem value="infrastructure">Infrastructure</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Impact</label>
+                  <Select value={newChange.impact} onValueChange={(v) => setNewChange(p => ({ ...p, impact: v }))}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Risk Level</label>
+                  <Select value={newChange.risk_level} onValueChange={(v) => setNewChange(p => ({ ...p, risk_level: v }))}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Target Date</label>
+                <Input type="date" value={newChange.target_date} onChange={(e) => setNewChange(p => ({ ...p, target_date: e.target.value }))} className="rounded-xl" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Rollback Plan</label>
+                <Textarea value={newChange.rollback_plan} onChange={(e) => setNewChange(p => ({ ...p, rollback_plan: e.target.value }))} placeholder="How to rollback if issues occur..." className="rounded-xl min-h-[60px]" />
+              </div>
+              <Button onClick={handleAdd} className="w-full rounded-full bg-blue-600">Create Change Request</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-8 text-slate-500">Loading...</div>
+      ) : changes.length === 0 ? (
+        <div className="glass-card p-12 text-center">
+          <FileCheck className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <p className="text-slate-500">No change requests yet. Create one to track releases!</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {changes.map((change) => {
+            const cfg = statusConfig[change.status] || statusConfig.draft;
+            const StatusIcon = cfg.icon;
+            return (
+              <div key={change.change_id} className="glass-card p-5 hover:shadow-md transition-all">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-xl bg-${cfg.color}-500/10 flex items-center justify-center flex-shrink-0`}>
+                      <StatusIcon className={`w-5 h-5 text-${cfg.color}-500`} />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 dark:text-white">{change.title}</h4>
+                      <p className="text-sm text-slate-500">{change.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={`bg-${cfg.color}-500/20 text-${cfg.color}-600`}>{cfg.label}</Badge>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Change Request?</AlertDialogTitle>
+                          <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(change.change_id)} className="bg-red-500">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-3 mb-4 text-sm">
+                  <Badge className={impactColors[change.impact]}>Impact: {change.impact}</Badge>
+                  <Badge className={change.risk_level === 'high' ? 'bg-red-500/20 text-red-600' : change.risk_level === 'medium' ? 'bg-amber-500/20 text-amber-600' : 'bg-slate-500/20 text-slate-600'}>
+                    Risk: {change.risk_level}
+                  </Badge>
+                  <span className="text-slate-500">Type: {change.change_type}</span>
+                  {change.target_date && <span className="text-slate-500">Target: {new Date(change.target_date).toLocaleDateString()}</span>}
+                </div>
+
+                {change.rollback_plan && (
+                  <div className="bg-slate-50 dark:bg-white/5 rounded-lg p-3 mb-4">
+                    <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Rollback Plan</div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{change.rollback_plan}</p>
+                  </div>
+                )}
+
+                {/* Action Buttons based on status */}
+                <div className="flex items-center gap-2 border-t border-slate-200 dark:border-white/10 pt-3">
+                  {change.status === 'draft' && (
+                    <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'pending_review')} className="rounded-full bg-amber-500 text-white">
+                      Submit for Review
+                    </Button>
+                  )}
+                  {change.status === 'pending_review' && (
+                    <>
+                      <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'approved')} className="rounded-full bg-emerald-500 text-white">
+                        <ThumbsUp className="w-4 h-4 mr-1" /> Approve
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleStatusChange(change.change_id, 'rejected')} className="rounded-full text-red-500 border-red-500">
+                        <ThumbsDown className="w-4 h-4 mr-1" /> Reject
+                      </Button>
+                    </>
+                  )}
+                  {change.status === 'approved' && (
+                    <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'implemented')} className="rounded-full bg-blue-500 text-white">
+                      <Rocket className="w-4 h-4 mr-1" /> Mark Implemented
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
@@ -505,7 +1173,7 @@ const ProjectDetail = () => {
               </div>
               <div>
                 <div className="text-2xl font-bold text-slate-900 dark:text-white">{tasksDone}/{totalTasks}</div>
-                <div className="text-sm text-slate-500">Tasks</div>
+                <div className="text-sm text-slate-500">Action Items</div>
               </div>
             </div>
           </div>
@@ -549,11 +1217,13 @@ const ProjectDetail = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="glass-card p-1 h-auto inline-flex gap-1">
+          <TabsList className="glass-card p-1 h-auto inline-flex gap-1 flex-wrap">
             <TabsTrigger value="overview" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Overview</TabsTrigger>
-            <TabsTrigger value="tasks" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Tasks ({totalTasks})</TabsTrigger>
+            <TabsTrigger value="tasks" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Action Items ({totalTasks})</TabsTrigger>
             <TabsTrigger value="milestones" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Milestones ({project.milestones?.length || 0})</TabsTrigger>
             <TabsTrigger value="stories" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Stories ({project.stories?.length || 0})</TabsTrigger>
+            <TabsTrigger value="raid" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">RAID Log</TabsTrigger>
+            <TabsTrigger value="changes" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Changes</TabsTrigger>
             <TabsTrigger value="risks" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Risks ({project.risks?.length || 0})</TabsTrigger>
           </TabsList>
 
@@ -601,30 +1271,33 @@ const ProjectDetail = () => {
                 </div>
               )}
             </div>
+
+            {/* Weekly Updates Section */}
+            <WeeklyUpdatesSection projectId={projectId} />
           </TabsContent>
 
-          {/* Tasks Tab */}
+          {/* Action Items Tab */}
           <TabsContent value="tasks" className="space-y-4">
             <div className="flex justify-end">
               <Dialog open={isAddTaskOpen} onOpenChange={setIsAddTaskOpen}>
                 <DialogTrigger asChild>
                   <Button className="rounded-full bg-blue-600 text-white hover:bg-blue-700" data-testid="add-task-button">
                     <Plus className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                    Add Task
+                    Add Action Item
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Add New Task</DialogTitle>
+                    <DialogTitle>Add New Action Item</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
                     <div>
                       <label className="text-sm font-medium mb-2 block">Title *</label>
-                      <Input value={newTask.title} onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))} placeholder="Task title" className="rounded-xl" data-testid="new-task-title" />
+                      <Input value={newTask.title} onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))} placeholder="Action item title" className="rounded-xl" data-testid="new-task-title" />
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-2 block">Description</label>
-                      <Textarea value={newTask.description} onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))} placeholder="Task description" className="rounded-xl" />
+                      <Textarea value={newTask.description} onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))} placeholder="Action item description" className="rounded-xl" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -644,7 +1317,7 @@ const ProjectDetail = () => {
                         <Input type="number" value={newTask.estimated_hours} onChange={(e) => setNewTask(prev => ({ ...prev, estimated_hours: parseInt(e.target.value) || 0 }))} className="rounded-xl" />
                       </div>
                     </div>
-                    <Button onClick={handleAddTask} className="w-full rounded-full bg-blue-600">Add Task</Button>
+                    <Button onClick={handleAddTask} className="w-full rounded-full bg-blue-600">Add Action Item</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -653,7 +1326,7 @@ const ProjectDetail = () => {
             {project.tasks?.length === 0 ? (
               <div className="glass-card p-12 text-center">
                 <ListTodo className="w-12 h-12 text-slate-300 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="text-slate-500">No tasks yet. Add your first task!</p>
+                <p className="text-slate-500">No action items yet. Add your first action item!</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -1059,6 +1732,16 @@ const ProjectDetail = () => {
                 })}
               </div>
             )}
+          </TabsContent>
+
+          {/* RAID Log Tab */}
+          <TabsContent value="raid" className="space-y-4">
+            <RAIDLogSection projectId={projectId} />
+          </TabsContent>
+
+          {/* Change Management Tab */}
+          <TabsContent value="changes" className="space-y-4">
+            <ChangeManagementSection projectId={projectId} />
           </TabsContent>
         </Tabs>
 

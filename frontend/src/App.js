@@ -14,6 +14,7 @@ import PortfolioDashboard from './pages/PortfolioDashboard';
 import AICopilot from './pages/AICopilot';
 import AllProjects from './pages/AllProjects';
 import ProgramView from './pages/ProgramView';
+import ChangeManagementDashboard from './pages/ChangeManagementDashboard';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -200,6 +201,7 @@ const AppRouter = () => {
       <Route path="/copilot" element={<ProtectedRoute><AICopilot /></ProtectedRoute>} />
       <Route path="/projects" element={<ProtectedRoute><AllProjects /></ProtectedRoute>} />
       <Route path="/program" element={<ProtectedRoute><ProgramView /></ProtectedRoute>} />
+      <Route path="/changes" element={<ProtectedRoute><ChangeManagementDashboard /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

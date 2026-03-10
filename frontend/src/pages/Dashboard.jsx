@@ -15,11 +15,11 @@ import {
 import {
   Sparkles, LayoutDashboard, FolderKanban, Users, Target, MessageSquare,
   Plus, ChevronRight, TrendingUp, AlertTriangle, CheckCircle2, Clock,
-  Sun, Moon, LogOut, Briefcase, Activity, BarChart3, Calendar
+  Sun, Moon, LogOut, Briefcase, Activity, BarChart3, Calendar, FileCheck
 } from 'lucide-react';
 
 // Sidebar Component
-const Sidebar = ({ currentPage }) => {
+export const Sidebar = ({ currentPage }) => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -31,6 +31,7 @@ const Sidebar = ({ currentPage }) => {
     { icon: FolderKanban, label: 'Sprint Board', href: '/sprint', id: 'sprint' },
     { icon: Users, label: 'Resources', href: '/resources', id: 'resources' },
     { icon: Target, label: 'Program View', href: '/program', id: 'program' },
+    { icon: FileCheck, label: 'Change Mgmt', href: '/changes', id: 'changes' },
     { icon: MessageSquare, label: 'AI Copilot', href: '/copilot', id: 'copilot' },
   ];
 
@@ -559,4 +560,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-export { Sidebar };

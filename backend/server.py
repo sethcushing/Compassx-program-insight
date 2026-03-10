@@ -258,6 +258,95 @@ class AIStoryRequest(BaseModel):
     project_id: str
     requirements: str
 
+# ================== WEEKLY UPDATE MODELS ==================
+
+class WeeklyUpdate(BaseModel):
+    update_id: str = Field(default_factory=lambda: f"update_{uuid.uuid4().hex[:12]}")
+    project_id: str
+    week_start: str  # ISO date string for week start
+    whats_going_well: str = ""
+    roadblocks: str = ""
+    created_by: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class WeeklyUpdateCreate(BaseModel):
+    project_id: str
+    week_start: str
+    whats_going_well: str = ""
+    roadblocks: str = ""
+
+class WeeklyUpdateUpdate(BaseModel):
+    whats_going_well: Optional[str] = None
+    roadblocks: Optional[str] = None
+
+# ================== RAID LOG MODELS ==================
+
+class RAIDItem(BaseModel):
+    raid_id: str = Field(default_factory=lambda: f"raid_{uuid.uuid4().hex[:12]}")
+    project_id: str
+    type: str  # role, assumption, issue, dependency
+    title: str
+    description: str = ""
+    owner: Optional[str] = None
+    status: str = "open"  # open, resolved, closed
+    due_date: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class RAIDItemCreate(BaseModel):
+    project_id: str
+    type: str
+    title: str
+    description: str = ""
+    owner: Optional[str] = None
+    due_date: Optional[str] = None
+
+class RAIDItemUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    owner: Optional[str] = None
+    status: Optional[str] = None
+    due_date: Optional[str] = None
+
+# ================== CHANGE MANAGEMENT MODELS ==================
+
+class ChangeRequest(BaseModel):
+    change_id: str = Field(default_factory=lambda: f"cr_{uuid.uuid4().hex[:12]}")
+    project_id: str
+    title: str
+    description: str = ""
+    change_type: str = "feature"  # feature, enhancement, bugfix, infrastructure
+    impact: str = "medium"  # low, medium, high, critical
+    risk_level: str = "medium"  # low, medium, high
+    status: str = "draft"  # draft, pending_review, approved, rejected, implemented
+    requested_by: str
+    approved_by: Optional[str] = None
+    target_date: Optional[str] = None
+    implementation_date: Optional[str] = None
+    rollback_plan: str = ""
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ChangeRequestCreate(BaseModel):
+    project_id: str
+    title: str
+    description: str = ""
+    change_type: str = "feature"
+    impact: str = "medium"
+    risk_level: str = "medium"
+    target_date: Optional[str] = None
+    rollback_plan: str = ""
+
+class ChangeRequestUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    change_type: Optional[str] = None
+    impact: Optional[str] = None
+    risk_level: Optional[str] = None
+    status: Optional[str] = None
+    target_date: Optional[str] = None
+    implementation_date: Optional[str] = None
+    rollback_plan: Optional[str] = None
+
 # ================== AUTH HELPERS ==================
 
 async def get_current_user(request: Request) -> User:
@@ -1193,6 +1282,206 @@ async def get_dashboard_stats(user: User = Depends(get_current_user)):
         "completed_story_points": completed_story_points
     }
 
+# ================== WEEKLY UPDATE ROUTES ==================
+
+@api_router.get("/weekly-updates", response_model=List[Dict])
+async def get_weekly_updates(project_id: str, user: User = Depends(get_current_user)):
+    """Get all weekly updates for a project"""
+    updates = await db.weekly_updates.find(
+        {"project_id": project_id},
+        {"_id": 0}
+    ).sort("week_start", -1).to_list(100)
+    return updates
+
+@api_router.post("/weekly-updates", response_model=Dict)
+async def create_weekly_update(update: WeeklyUpdateCreate, user: User = Depends(get_current_user)):
+    """Create a weekly update"""
+    new_update = WeeklyUpdate(
+        project_id=update.project_id,
+        week_start=update.week_start,
+        whats_going_well=update.whats_going_well,
+        roadblocks=update.roadblocks,
+        created_by=user.user_id
+    )
+    doc = new_update.model_dump()
+    doc["created_at"] = doc["created_at"].isoformat()
+    await db.weekly_updates.insert_one(doc)
+    return {**doc, "_id": None}
+
+@api_router.patch("/weekly-updates/{update_id}", response_model=Dict)
+async def update_weekly_update(update_id: str, update: WeeklyUpdateUpdate, user: User = Depends(get_current_user)):
+    """Update a weekly update"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.weekly_updates.update_one({"update_id": update_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Weekly update not found")
+    
+    doc = await db.weekly_updates.find_one({"update_id": update_id}, {"_id": 0})
+    return doc
+
+@api_router.delete("/weekly-updates/{update_id}")
+async def delete_weekly_update(update_id: str, user: User = Depends(get_current_user)):
+    """Delete a weekly update"""
+    result = await db.weekly_updates.delete_one({"update_id": update_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Weekly update not found")
+    return {"message": "Weekly update deleted"}
+
+# ================== RAID LOG ROUTES ==================
+
+@api_router.get("/raid-items", response_model=List[Dict])
+async def get_raid_items(project_id: str, user: User = Depends(get_current_user)):
+    """Get all RAID items for a project"""
+    items = await db.raid_items.find(
+        {"project_id": project_id},
+        {"_id": 0}
+    ).to_list(200)
+    return items
+
+@api_router.post("/raid-items", response_model=Dict)
+async def create_raid_item(item: RAIDItemCreate, user: User = Depends(get_current_user)):
+    """Create a RAID item"""
+    new_item = RAIDItem(
+        project_id=item.project_id,
+        type=item.type,
+        title=item.title,
+        description=item.description,
+        owner=item.owner,
+        due_date=item.due_date
+    )
+    doc = new_item.model_dump()
+    doc["created_at"] = doc["created_at"].isoformat()
+    await db.raid_items.insert_one(doc)
+    return {**doc, "_id": None}
+
+@api_router.patch("/raid-items/{raid_id}", response_model=Dict)
+async def update_raid_item(raid_id: str, update: RAIDItemUpdate, user: User = Depends(get_current_user)):
+    """Update a RAID item"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.raid_items.update_one({"raid_id": raid_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="RAID item not found")
+    
+    doc = await db.raid_items.find_one({"raid_id": raid_id}, {"_id": 0})
+    return doc
+
+@api_router.delete("/raid-items/{raid_id}")
+async def delete_raid_item(raid_id: str, user: User = Depends(get_current_user)):
+    """Delete a RAID item"""
+    result = await db.raid_items.delete_one({"raid_id": raid_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="RAID item not found")
+    return {"message": "RAID item deleted"}
+
+# ================== CHANGE MANAGEMENT ROUTES ==================
+
+@api_router.get("/change-requests", response_model=List[Dict])
+async def get_change_requests(project_id: Optional[str] = None, user: User = Depends(get_current_user)):
+    """Get change requests, optionally filtered by project"""
+    query = {}
+    if project_id:
+        query["project_id"] = project_id
+    
+    requests = await db.change_requests.find(query, {"_id": 0}).to_list(200)
+    return requests
+
+@api_router.post("/change-requests", response_model=Dict)
+async def create_change_request(req: ChangeRequestCreate, user: User = Depends(get_current_user)):
+    """Create a change request"""
+    new_request = ChangeRequest(
+        project_id=req.project_id,
+        title=req.title,
+        description=req.description,
+        change_type=req.change_type,
+        impact=req.impact,
+        risk_level=req.risk_level,
+        target_date=req.target_date,
+        rollback_plan=req.rollback_plan,
+        requested_by=user.user_id
+    )
+    doc = new_request.model_dump()
+    doc["created_at"] = doc["created_at"].isoformat()
+    doc["updated_at"] = doc["updated_at"].isoformat()
+    await db.change_requests.insert_one(doc)
+    return {**doc, "_id": None}
+
+@api_router.patch("/change-requests/{change_id}", response_model=Dict)
+async def update_change_request(change_id: str, update: ChangeRequestUpdate, user: User = Depends(get_current_user)):
+    """Update a change request"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # Track approval
+    if update_data.get("status") == "approved":
+        update_data["approved_by"] = user.user_id
+    
+    result = await db.change_requests.update_one({"change_id": change_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Change request not found")
+    
+    doc = await db.change_requests.find_one({"change_id": change_id}, {"_id": 0})
+    return doc
+
+@api_router.delete("/change-requests/{change_id}")
+async def delete_change_request(change_id: str, user: User = Depends(get_current_user)):
+    """Delete a change request"""
+    result = await db.change_requests.delete_one({"change_id": change_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Change request not found")
+    return {"message": "Change request deleted"}
+
+@api_router.get("/change-management/dashboard")
+async def get_change_management_dashboard(user: User = Depends(get_current_user)):
+    """Get change management dashboard stats"""
+    # Get all change requests
+    all_requests = await db.change_requests.find({}, {"_id": 0}).to_list(500)
+    
+    # Get project info for each request
+    project_ids = list(set([r["project_id"] for r in all_requests]))
+    projects = await db.projects.find({"project_id": {"$in": project_ids}}, {"_id": 0, "project_id": 1, "name": 1}).to_list(100)
+    project_map = {p["project_id"]: p["name"] for p in projects}
+    
+    # Add project names to requests
+    for req in all_requests:
+        req["project_name"] = project_map.get(req["project_id"], "Unknown")
+    
+    # Stats by status
+    by_status = {
+        "draft": len([r for r in all_requests if r["status"] == "draft"]),
+        "pending_review": len([r for r in all_requests if r["status"] == "pending_review"]),
+        "approved": len([r for r in all_requests if r["status"] == "approved"]),
+        "rejected": len([r for r in all_requests if r["status"] == "rejected"]),
+        "implemented": len([r for r in all_requests if r["status"] == "implemented"])
+    }
+    
+    # Stats by impact
+    by_impact = {
+        "low": len([r for r in all_requests if r["impact"] == "low"]),
+        "medium": len([r for r in all_requests if r["impact"] == "medium"]),
+        "high": len([r for r in all_requests if r["impact"] == "high"]),
+        "critical": len([r for r in all_requests if r["impact"] == "critical"])
+    }
+    
+    # Pending approval requests
+    pending_approval = [r for r in all_requests if r["status"] == "pending_review"]
+    
+    return {
+        "total_requests": len(all_requests),
+        "by_status": by_status,
+        "by_impact": by_impact,
+        "pending_approval": pending_approval,
+        "recent_requests": sorted(all_requests, key=lambda x: x.get("created_at", ""), reverse=True)[:10]
+    }
+
 # ================== SEED DATA ==================
 
 @api_router.post("/seed-demo-data")
@@ -1298,18 +1587,18 @@ async def seed_demo_data(user: User = Depends(get_current_user)):
         project_sprints = await db.sprints.find({"project_id": project["project_id"]}, {"_id": 0}).to_list(10)
         sprint_id_map = {s["name"]: s["sprint_id"] for s in project_sprints}
         
-        # Add stories with sprint assignments
+        # Add stories with sprint assignments (no epics)
         story_templates = [
-            {"title": "As a user, I want to login securely so that my data is protected", "epic": "Authentication", "status": "done", "story_points": 5, "sprint_name": "Sprint 1"},
-            {"title": "As a user, I want to reset my password so that I can recover access", "epic": "Authentication", "status": "done", "story_points": 3, "sprint_name": "Sprint 1"},
-            {"title": "As a user, I want to view my dashboard so that I can see my overview", "epic": "Dashboard", "status": "done", "story_points": 8, "sprint_name": "Sprint 1"},
-            {"title": "As a user, I want to create projects so that I can organize my work", "epic": "Projects", "status": "done", "story_points": 5, "sprint_name": "Sprint 2"},
-            {"title": "As a user, I want to add team members so that we can collaborate", "epic": "Projects", "status": "done", "story_points": 5, "sprint_name": "Sprint 2"},
-            {"title": "As a PM, I want to track milestones so that I can monitor progress", "epic": "Tracking", "status": "in_progress", "story_points": 8, "sprint_name": "Sprint 3"},
-            {"title": "As a PM, I want to generate reports so that I can share status", "epic": "Reporting", "status": "in_progress", "story_points": 8, "sprint_name": "Sprint 3"},
-            {"title": "As a user, I want notifications so that I stay informed", "epic": "Notifications", "status": "ready", "story_points": 5, "sprint_name": "Sprint 3"},
-            {"title": "As a PM, I want AI insights so that I can make better decisions", "epic": "AI Features", "status": "backlog", "story_points": 13, "sprint_name": "Sprint 4"},
-            {"title": "As a user, I want to export data so that I can use it elsewhere", "epic": "Data Management", "status": "backlog", "story_points": 5, "sprint_name": "Sprint 4"}
+            {"title": "As a user, I want to login securely so that my data is protected", "status": "done", "story_points": 5, "sprint_name": "Sprint 1"},
+            {"title": "As a user, I want to reset my password so that I can recover access", "status": "done", "story_points": 3, "sprint_name": "Sprint 1"},
+            {"title": "As a user, I want to view my dashboard so that I can see my overview", "status": "done", "story_points": 8, "sprint_name": "Sprint 1"},
+            {"title": "As a user, I want to create projects so that I can organize my work", "status": "done", "story_points": 5, "sprint_name": "Sprint 2"},
+            {"title": "As a user, I want to add team members so that we can collaborate", "status": "done", "story_points": 5, "sprint_name": "Sprint 2"},
+            {"title": "As a PM, I want to track milestones so that I can monitor progress", "status": "in_progress", "story_points": 8, "sprint_name": "Sprint 3"},
+            {"title": "As a PM, I want to generate reports so that I can share status", "status": "in_progress", "story_points": 8, "sprint_name": "Sprint 3"},
+            {"title": "As a user, I want notifications so that I stay informed", "status": "ready", "story_points": 5, "sprint_name": "Sprint 3"},
+            {"title": "As a PM, I want AI insights so that I can make better decisions", "status": "backlog", "story_points": 13, "sprint_name": "Sprint 4"},
+            {"title": "As a user, I want to export data so that I can use it elsewhere", "status": "backlog", "story_points": 5, "sprint_name": "Sprint 4"}
         ]
         
         for story in story_templates:
@@ -1317,16 +1606,15 @@ async def seed_demo_data(user: User = Depends(get_current_user)):
                 "story_id": f"story_{uuid.uuid4().hex[:12]}",
                 "project_id": project["project_id"],
                 "title": story["title"],
-                "description": f"User story for {story['epic']}",
-                "epic": story["epic"],
+                "description": "User story description",
                 "status": story["status"],
                 "story_points": story["story_points"],
                 "priority": "high" if story["story_points"] >= 8 else "medium",
                 "sprint_id": sprint_id_map.get(story["sprint_name"]),
                 "acceptance_criteria": [
-                    f"Feature works as expected",
-                    f"Unit tests pass",
-                    f"Code reviewed and approved"
+                    "Feature works as expected",
+                    "Unit tests pass",
+                    "Code reviewed and approved"
                 ],
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
@@ -1415,7 +1703,137 @@ async def seed_demo_data(user: User = Depends(get_current_user)):
             upsert=True
         )
     
-    return {"message": "Demo data seeded successfully", "projects": len(demo_projects), "resources": len(demo_resources)}
+    # Seed RAID items, Weekly Updates, and Change Requests for first project
+    first_project = await db.projects.find_one({"name": "Mobile App Launch", "created_by": user.user_id}, {"_id": 0})
+    if first_project:
+        proj_id = first_project["project_id"]
+        
+        # RAID Items - Roles
+        raid_roles = [
+            {"type": "role", "title": "Project Sponsor", "description": "Executive oversight and budget approval", "owner": "John Smith (VP Engineering)", "status": "open"},
+            {"type": "role", "title": "Technical Lead", "description": "Architecture decisions and technical guidance", "owner": "Marcus Johnson", "status": "open"},
+            {"type": "role", "title": "Scrum Master", "description": "Facilitate ceremonies and remove blockers", "owner": "Sarah Chen", "status": "open"},
+            {"type": "role", "title": "QA Lead", "description": "Quality assurance strategy and test planning", "owner": "James Miller", "status": "open"}
+        ]
+        
+        # RAID Items - Assumptions, Issues, Dependencies
+        raid_others = [
+            {"type": "assumption", "title": "Cloud infrastructure available", "description": "AWS resources will be provisioned by IT by Jan 20", "owner": "DevOps Team", "status": "open"},
+            {"type": "assumption", "title": "Third-party API access", "description": "Payment gateway API credentials will be provided", "owner": "Vendor Relations", "status": "open"},
+            {"type": "issue", "title": "Database performance bottleneck", "description": "Current DB queries running slow on large datasets", "owner": "David Kim", "status": "open", "due_date": "2025-02-15"},
+            {"type": "issue", "title": "iOS certification delay", "description": "App Store review taking longer than expected", "owner": "Sarah Chen", "status": "open", "due_date": "2025-02-28"},
+            {"type": "dependency", "title": "Design system completion", "description": "UI components depend on finalized design system", "owner": "Lisa Wang", "status": "resolved"},
+            {"type": "dependency", "title": "Security audit sign-off", "description": "Launch blocked until security team approval", "owner": "Security Team", "status": "open", "due_date": "2025-03-15"}
+        ]
+        
+        for item in raid_roles + raid_others:
+            raid_doc = {
+                "raid_id": f"raid_{uuid.uuid4().hex[:12]}",
+                "project_id": proj_id,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                **item
+            }
+            await db.raid_items.update_one(
+                {"project_id": proj_id, "title": item["title"]},
+                {"$set": raid_doc},
+                upsert=True
+            )
+        
+        # Weekly Updates
+        weekly_updates = [
+            {
+                "week_start": "2025-02-03",
+                "whats_going_well": "Sprint velocity improved by 15%. Team morale is high. Core API endpoints completed ahead of schedule.",
+                "roadblocks": "iOS certification taking longer than expected. Need to escalate to Apple developer relations."
+            },
+            {
+                "week_start": "2025-02-10",
+                "whats_going_well": "Authentication module completed. UI component library 80% done. Positive feedback from stakeholder demo.",
+                "roadblocks": "Database performance issues on large queries. Data team investigating. Payment gateway integration delayed due to missing credentials."
+            },
+            {
+                "week_start": "2025-02-17",
+                "whats_going_well": "Database issues resolved with indexing strategy. Payment gateway credentials received. On track for MVP milestone.",
+                "roadblocks": "Two team members out sick this week affecting sprint capacity. May need to deprioritize some nice-to-have features."
+            }
+        ]
+        
+        for update in weekly_updates:
+            update_doc = {
+                "update_id": f"update_{uuid.uuid4().hex[:12]}",
+                "project_id": proj_id,
+                "created_by": user.user_id,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                **update
+            }
+            await db.weekly_updates.update_one(
+                {"project_id": proj_id, "week_start": update["week_start"]},
+                {"$set": update_doc},
+                upsert=True
+            )
+        
+        # Change Requests
+        change_requests = [
+            {
+                "title": "Add biometric authentication",
+                "description": "Implement Face ID and fingerprint login for enhanced security and user convenience",
+                "change_type": "feature",
+                "impact": "medium",
+                "risk_level": "low",
+                "status": "approved",
+                "target_date": "2025-03-15",
+                "rollback_plan": "Disable biometric auth flag, users fall back to password login"
+            },
+            {
+                "title": "Database migration to PostgreSQL",
+                "description": "Migrate from MongoDB to PostgreSQL for better relational data support",
+                "change_type": "infrastructure",
+                "impact": "critical",
+                "risk_level": "high",
+                "status": "pending_review",
+                "target_date": "2025-04-01",
+                "rollback_plan": "Maintain MongoDB backup, switch connection string back to Mongo cluster"
+            },
+            {
+                "title": "Real-time notifications system",
+                "description": "Implement WebSocket-based push notifications for instant updates",
+                "change_type": "enhancement",
+                "impact": "medium",
+                "risk_level": "medium",
+                "status": "draft",
+                "target_date": "2025-03-30",
+                "rollback_plan": "Fall back to polling-based notification fetch every 30 seconds"
+            },
+            {
+                "title": "Performance optimization release",
+                "description": "Bundle of performance improvements including lazy loading, caching, and code splitting",
+                "change_type": "enhancement",
+                "impact": "low",
+                "risk_level": "low",
+                "status": "implemented",
+                "target_date": "2025-02-01",
+                "implementation_date": "2025-02-01",
+                "rollback_plan": "Revert to previous build version v1.2.3"
+            }
+        ]
+        
+        for cr in change_requests:
+            cr_doc = {
+                "change_id": f"cr_{uuid.uuid4().hex[:12]}",
+                "project_id": proj_id,
+                "requested_by": user.user_id,
+                "approved_by": user.user_id if cr["status"] in ["approved", "implemented"] else None,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                **cr
+            }
+            await db.change_requests.update_one(
+                {"project_id": proj_id, "title": cr["title"]},
+                {"$set": cr_doc},
+                upsert=True
+            )
+    
+    return {"message": "Demo data seeded successfully", "projects": len(demo_projects), "resources": len(demo_resources), "raid_items": 10, "weekly_updates": 3, "change_requests": 4}
 
 # ================== SETUP ==================
 
