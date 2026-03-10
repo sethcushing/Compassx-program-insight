@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime, timezone
 
 # Get API URL
-API_URL = os.environ.get('API_URL', 'https://project-planner-ai-1.preview.emergentagent.com/api')
+API_URL = os.environ.get('API_URL', 'https://weekly-updates-hub.preview.emergentagent.com/api')
 
 def get_test_session():
     """Create test user and session directly in MongoDB"""

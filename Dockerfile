@@ -3,14 +3,14 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
-# Copy package files (handle both yarn and npm)
+# Copy package files
 COPY frontend/package.json ./
 COPY frontend/yarn.lock* frontend/package-lock.json* ./
 
-# Install dependencies (prefer yarn if lock exists, fallback to npm)
+# Install dependencies
 RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-    elif [ -f package-lock.json ]; then npm ci; \
-    else npm install; fi
+    elif [ -f package-lock.json ]; then npm ci --legacy-peer-deps; \
+    else npm install --legacy-peer-deps; fi
 
 # Copy frontend source
 COPY frontend/ ./
