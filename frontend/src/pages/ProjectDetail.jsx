@@ -206,12 +206,13 @@ const WeeklyUpdatesSection = ({ projectId }) => {
 };
 
 // ============ RAID LOG COMPONENT ============
+// RAID = Risks, Issues, Action Items, Decisions
 const RAIDLogSection = ({ projectId }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [activeType, setActiveType] = useState('all');
-  const [newItem, setNewItem] = useState({ type: 'role', title: '', description: '', owner: '', due_date: '' });
+  const [newItem, setNewItem] = useState({ type: 'risk', title: '', description: '', owner: '', due_date: '', priority: 'medium' });
   const [editingItem, setEditingItem] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -239,7 +240,7 @@ const RAIDLogSection = ({ projectId }) => {
       await axios.post(`${API}/raid-items`, { project_id: projectId, ...newItem }, { withCredentials: true });
       toast.success('RAID item added');
       setIsAddOpen(false);
-      setNewItem({ type: 'role', title: '', description: '', owner: '', due_date: '' });
+      setNewItem({ type: 'risk', title: '', description: '', owner: '', due_date: '', priority: 'medium' });
       loadItems();
     } catch (err) {
       toast.error('Failed to add item');
@@ -253,7 +254,8 @@ const RAIDLogSection = ({ projectId }) => {
         description: editingItem.description,
         owner: editingItem.owner,
         status: editingItem.status,
-        due_date: editingItem.due_date
+        due_date: editingItem.due_date,
+        priority: editingItem.priority
       }, { withCredentials: true });
       toast.success('Item updated');
       setIsEditOpen(false);
@@ -273,13 +275,31 @@ const RAIDLogSection = ({ projectId }) => {
     }
   };
 
+  const handleStatusToggle = async (item) => {
+    const newStatus = item.status === 'open' ? 'closed' : 'open';
+    try {
+      await axios.patch(`${API}/raid-items/${item.raid_id}`, { status: newStatus }, { withCredentials: true });
+      loadItems();
+    } catch (err) {
+      toast.error('Failed to update status');
+    }
+  };
+
   const filteredItems = activeType === 'all' ? items : items.filter(i => i.type === activeType);
   
+  // RAID = Risks, Issues, Action Items, Decisions
   const typeConfig = {
-    role: { label: 'Roles & Responsibilities', icon: Users, color: 'blue' },
-    assumption: { label: 'Assumptions', icon: FileText, color: 'purple' },
-    issue: { label: 'Issues', icon: AlertTriangle, color: 'red' },
-    dependency: { label: 'Dependencies', icon: GitBranch, color: 'amber' }
+    risk: { label: 'Risks', icon: AlertTriangle, color: 'red', bgColor: 'bg-red-500/10', textColor: 'text-red-600' },
+    issue: { label: 'Issues', icon: ShieldAlert, color: 'amber', bgColor: 'bg-amber-500/10', textColor: 'text-amber-600' },
+    action_item: { label: 'Action Items', icon: ListTodo, color: 'blue', bgColor: 'bg-blue-500/10', textColor: 'text-blue-600' },
+    decision: { label: 'Decisions', icon: CheckSquare, color: 'emerald', bgColor: 'bg-emerald-500/10', textColor: 'text-emerald-600' }
+  };
+
+  const priorityConfig = {
+    low: { label: 'Low', color: 'bg-slate-500/20 text-slate-600' },
+    medium: { label: 'Medium', color: 'bg-amber-500/20 text-amber-600' },
+    high: { label: 'High', color: 'bg-orange-500/20 text-orange-600' },
+    critical: { label: 'Critical', color: 'bg-red-500/20 text-red-600' }
   };
 
   return (
@@ -293,8 +313,8 @@ const RAIDLogSection = ({ projectId }) => {
           {Object.entries(typeConfig).map(([key, cfg]) => {
             const count = items.filter(i => i.type === key).length;
             return (
-              <Button key={key} variant={activeType === key ? 'default' : 'outline'} size="sm" onClick={() => setActiveType(key)} className="rounded-full">
-                <cfg.icon className="w-4 h-4 mr-1" /> {cfg.label.split(' ')[0]} ({count})
+              <Button key={key} variant={activeType === key ? 'default' : 'outline'} size="sm" onClick={() => setActiveType(key)} className={`rounded-full ${activeType === key ? '' : ''}`}>
+                <cfg.icon className="w-4 h-4 mr-1" /> {cfg.label} ({count})
               </Button>
             );
           })}
@@ -313,10 +333,10 @@ const RAIDLogSection = ({ projectId }) => {
                 <Select value={newItem.type} onValueChange={(v) => setNewItem(p => ({ ...p, type: v }))}>
                   <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="role">Role / Responsibility</SelectItem>
-                    <SelectItem value="assumption">Assumption</SelectItem>
+                    <SelectItem value="risk">Risk</SelectItem>
                     <SelectItem value="issue">Issue</SelectItem>
-                    <SelectItem value="dependency">Dependency</SelectItem>
+                    <SelectItem value="action_item">Action Item</SelectItem>
+                    <SelectItem value="decision">Decision</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -334,9 +354,21 @@ const RAIDLogSection = ({ projectId }) => {
                   <Input value={newItem.owner} onChange={(e) => setNewItem(p => ({ ...p, owner: e.target.value }))} placeholder="Assigned to" className="rounded-xl" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Due Date</label>
-                  <Input type="date" value={newItem.due_date} onChange={(e) => setNewItem(p => ({ ...p, due_date: e.target.value }))} className="rounded-xl" />
+                  <label className="text-sm font-medium mb-2 block">Priority</label>
+                  <Select value={newItem.priority} onValueChange={(v) => setNewItem(p => ({ ...p, priority: v }))}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Due Date</label>
+                <Input type="date" value={newItem.due_date} onChange={(e) => setNewItem(p => ({ ...p, due_date: e.target.value }))} className="rounded-xl" />
               </div>
               <Button onClick={handleAdd} className="w-full rounded-full bg-blue-600">Add Item</Button>
             </div>
@@ -344,7 +376,7 @@ const RAIDLogSection = ({ projectId }) => {
         </Dialog>
       </div>
 
-      {/* Items List */}
+      {/* Table View */}
       {loading ? (
         <div className="text-center py-8 text-slate-500">Loading...</div>
       ) : filteredItems.length === 0 ? (
@@ -353,53 +385,97 @@ const RAIDLogSection = ({ projectId }) => {
           <p className="text-slate-500">No RAID items found. Add your first item!</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {filteredItems.map((item) => {
-            const cfg = typeConfig[item.type];
-            const Icon = cfg.icon;
-            return (
-              <div key={item.raid_id} className="glass-card p-4 hover:shadow-md transition-all">
-                <div className="flex items-start gap-4">
-                  <div className={`w-10 h-10 rounded-xl bg-${cfg.color}-500/10 flex items-center justify-center flex-shrink-0`}>
-                    <Icon className={`w-5 h-5 text-${cfg.color}-500`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-semibold text-slate-900 dark:text-white">{item.title}</h4>
-                      <div className="flex items-center gap-2">
-                        <Badge className={item.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-600' : item.status === 'closed' ? 'bg-slate-500/20 text-slate-600' : 'bg-amber-500/20 text-amber-600'}>
-                          {item.status}
-                        </Badge>
-                        <Button variant="ghost" size="sm" onClick={() => { setEditingItem({...item}); setIsEditOpen(true); }}>
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Item?</AlertDialogTitle>
-                              <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(item.raid_id)} className="bg-red-500">Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                    {item.description && <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{item.description}</p>}
-                    <div className="flex items-center gap-4 text-xs text-slate-400">
-                      {item.owner && <span>Owner: {item.owner}</span>}
-                      {item.due_date && <span>Due: {new Date(item.due_date).toLocaleDateString()}</span>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="glass-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5">
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Type</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Title</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Owner</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Priority</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Due Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-white/10">
+                {filteredItems.map((item) => {
+                  const cfg = typeConfig[item.type] || typeConfig.risk;
+                  const Icon = cfg.icon;
+                  const priorityCfg = priorityConfig[item.priority] || priorityConfig.medium;
+                  return (
+                    <tr key={item.raid_id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-8 h-8 rounded-lg ${cfg.bgColor} flex items-center justify-center`}>
+                            <Icon className={`w-4 h-4 ${cfg.textColor}`} />
+                          </div>
+                          <span className={`text-sm font-medium ${cfg.textColor}`}>{cfg.label}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div>
+                          <div className="font-medium text-slate-900 dark:text-white">{item.title}</div>
+                          {item.description && (
+                            <div className="text-sm text-slate-500 truncate max-w-xs">{item.description}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-slate-700 dark:text-slate-300">{item.owner || '-'}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge className={priorityCfg.color}>{priorityCfg.label}</Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                          {item.due_date ? new Date(item.due_date).toLocaleDateString() : '-'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => handleStatusToggle(item)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                            item.status === 'open' 
+                              ? 'bg-amber-500/20 text-amber-600 hover:bg-amber-500/30' 
+                              : item.status === 'closed'
+                              ? 'bg-emerald-500/20 text-emerald-600 hover:bg-emerald-500/30'
+                              : 'bg-slate-500/20 text-slate-600 hover:bg-slate-500/30'
+                          }`}
+                        >
+                          {item.status === 'open' ? <Circle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
+                          {item.status === 'open' ? 'Open' : item.status === 'closed' ? 'Closed' : item.status}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => { setEditingItem({...item}); setIsEditOpen(true); }}>
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600"><Trash2 className="w-4 h-4" /></Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Item?</AlertDialogTitle>
+                                <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(item.raid_id)} className="bg-red-500">Delete</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -409,6 +485,18 @@ const RAIDLogSection = ({ projectId }) => {
           <DialogHeader><DialogTitle>Edit RAID Item</DialogTitle></DialogHeader>
           {editingItem && (
             <div className="space-y-4 mt-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Type</label>
+                <Select value={editingItem.type} onValueChange={(v) => setEditingItem(p => ({ ...p, type: v }))}>
+                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="risk">Risk</SelectItem>
+                    <SelectItem value="issue">Issue</SelectItem>
+                    <SelectItem value="action_item">Action Item</SelectItem>
+                    <SelectItem value="decision">Decision</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <label className="text-sm font-medium mb-2 block">Title</label>
                 <Input value={editingItem.title} onChange={(e) => setEditingItem(p => ({ ...p, title: e.target.value }))} className="rounded-xl" />
@@ -423,20 +511,33 @@ const RAIDLogSection = ({ projectId }) => {
                   <Input value={editingItem.owner || ''} onChange={(e) => setEditingItem(p => ({ ...p, owner: e.target.value }))} className="rounded-xl" />
                 </div>
                 <div>
+                  <label className="text-sm font-medium mb-2 block">Priority</label>
+                  <Select value={editingItem.priority || 'medium'} onValueChange={(v) => setEditingItem(p => ({ ...p, priority: v }))}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="text-sm font-medium mb-2 block">Status</label>
                   <Select value={editingItem.status} onValueChange={(v) => setEditingItem(p => ({ ...p, status: v }))}>
                     <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="open">Open</SelectItem>
-                      <SelectItem value="resolved">Resolved</SelectItem>
                       <SelectItem value="closed">Closed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Due Date</label>
-                <Input type="date" value={editingItem.due_date || ''} onChange={(e) => setEditingItem(p => ({ ...p, due_date: e.target.value }))} className="rounded-xl" />
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Due Date</label>
+                  <Input type="date" value={editingItem.due_date || ''} onChange={(e) => setEditingItem(p => ({ ...p, due_date: e.target.value }))} className="rounded-xl" />
+                </div>
               </div>
               <Button onClick={handleEdit} className="w-full rounded-full bg-blue-600">Save Changes</Button>
             </div>

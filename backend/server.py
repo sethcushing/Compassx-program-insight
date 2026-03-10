@@ -280,15 +280,17 @@ class WeeklyUpdateUpdate(BaseModel):
     roadblocks: Optional[str] = None
 
 # ================== RAID LOG MODELS ==================
+# RAID = Risks, Issues, Action Items, Decisions
 
 class RAIDItem(BaseModel):
     raid_id: str = Field(default_factory=lambda: f"raid_{uuid.uuid4().hex[:12]}")
     project_id: str
-    type: str  # role, assumption, issue, dependency
+    type: str  # risk, issue, action_item, decision
     title: str
     description: str = ""
     owner: Optional[str] = None
-    status: str = "open"  # open, resolved, closed
+    status: str = "open"  # open, closed
+    priority: str = "medium"  # low, medium, high, critical
     due_date: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -298,13 +300,16 @@ class RAIDItemCreate(BaseModel):
     title: str
     description: str = ""
     owner: Optional[str] = None
+    priority: str = "medium"
     due_date: Optional[str] = None
 
 class RAIDItemUpdate(BaseModel):
+    type: Optional[str] = None
     title: Optional[str] = None
     description: Optional[str] = None
     owner: Optional[str] = None
     status: Optional[str] = None
+    priority: Optional[str] = None
     due_date: Optional[str] = None
 
 # ================== CHANGE MANAGEMENT MODELS ==================
@@ -1742,19 +1747,26 @@ async def seed_demo_data(user: User = Depends(get_current_user)):
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
         
-        # RAID Items
+        # RAID Items - Risks, Issues, Action Items, Decisions
         raid_items = [
-            {"type": "role", "title": "Project Owner", "description": f"Overall accountability for project success and business outcomes", "owner": proj_config["owner"], "status": "open"},
-            {"type": "role", "title": "Technical Lead", "description": "Technical architecture and implementation decisions", "owner": "Seth", "status": "open"},
-            {"type": "role", "title": "QA Lead", "description": "Testing strategy and quality assurance", "owner": "Sandeep", "status": "open"},
-            {"type": "role", "title": "Change Manager", "description": "Change enablement and stakeholder communications", "owner": "Charlene", "status": "open"},
-            {"type": "role", "title": "Executive Sponsor", "description": "Executive oversight and escalation path", "owner": "Paddy", "status": "open"},
-            {"type": "assumption", "title": "Production infrastructure ready", "description": "Cloud infrastructure provisioned and configured by IT", "owner": "Seth", "status": "open"},
-            {"type": "assumption", "title": "Business users available for UAT", "description": "Key users allocated time for user acceptance testing", "owner": proj_config["owner"], "status": "open"},
-            {"type": "assumption", "title": "No major scope changes before release", "description": "Feature freeze in effect for production release", "owner": "Paddy", "status": "open"},
-            {"type": "issue", "title": "Performance testing environment availability", "description": "Need dedicated environment for load testing", "owner": "Brian", "status": "open", "due_date": "2025-02-20"},
-            {"type": "dependency", "title": "Security team sign-off", "description": "Production release blocked until security audit complete", "owner": "Sandeep", "status": "open", "due_date": "2025-03-07"},
-            {"type": "dependency", "title": "Change Advisory Board approval", "description": "CAB must approve production change request", "owner": "Charlene", "status": "open", "due_date": "2025-03-10"}
+            # Risks
+            {"type": "risk", "title": "Production capacity may not handle peak load", "description": "System may experience degraded performance during high-traffic periods", "owner": "Seth", "status": "open", "priority": "high", "due_date": "2025-02-28"},
+            {"type": "risk", "title": "Third-party API dependency", "description": "External vendor API changes could impact functionality", "owner": "Brian", "status": "open", "priority": "medium"},
+            {"type": "risk", "title": "Data migration data loss", "description": "Risk of data corruption during migration to new schema", "owner": "Seth", "status": "open", "priority": "critical", "due_date": "2025-03-01"},
+            # Issues
+            {"type": "issue", "title": "Performance testing environment not available", "description": "Need dedicated environment for load testing - blocking UAT completion", "owner": "Brian", "status": "open", "priority": "high", "due_date": "2025-02-20"},
+            {"type": "issue", "title": "Security scan findings to resolve", "description": "3 medium-severity findings from security scan need remediation", "owner": "Sandeep", "status": "open", "priority": "high", "due_date": "2025-02-25"},
+            {"type": "issue", "title": "API documentation gaps", "description": "Vendor API documentation incomplete, causing integration delays", "owner": proj_config["owner"], "status": "open", "priority": "medium"},
+            # Action Items
+            {"type": "action_item", "title": "Complete production runbook", "description": "Document all deployment and rollback procedures", "owner": "Seth", "status": "open", "priority": "high", "due_date": "2025-03-05"},
+            {"type": "action_item", "title": "Schedule CAB review meeting", "description": "Book Change Advisory Board for release approval", "owner": "Charlene", "status": "closed", "priority": "high"},
+            {"type": "action_item", "title": "Finalize training materials", "description": "Complete user guides and training videos", "owner": proj_config["owner"], "status": "open", "priority": "medium", "due_date": "2025-03-10"},
+            {"type": "action_item", "title": "Notify stakeholders of go-live date", "description": "Send communications to all impacted stakeholders", "owner": "Paddy", "status": "open", "priority": "high", "due_date": "2025-03-07"},
+            # Decisions
+            {"type": "decision", "title": "Go-live date confirmed for March 15", "description": "Executive team approved production release date", "owner": "Paddy", "status": "closed", "priority": "critical"},
+            {"type": "decision", "title": "Blue-green deployment strategy", "description": "Will use blue-green deployment for zero-downtime release", "owner": "Seth", "status": "closed", "priority": "high"},
+            {"type": "decision", "title": "Rollback window set to 4 hours", "description": "Team agreed on 4-hour window for rollback decision", "owner": "Paddy", "status": "closed", "priority": "high"},
+            {"type": "decision", "title": "Support escalation path defined", "description": "L1 > L2 > On-call engineer escalation approved", "owner": "Sandeep", "status": "closed", "priority": "medium"}
         ]
         
         for item in raid_items:
