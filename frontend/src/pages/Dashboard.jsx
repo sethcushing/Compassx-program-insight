@@ -15,7 +15,8 @@ import {
 import {
   Sparkles, LayoutDashboard, FolderKanban, Users, Target, MessageSquare,
   Plus, ChevronRight, TrendingUp, AlertTriangle, CheckCircle2, Clock,
-  Sun, Moon, Briefcase, Activity, BarChart3, Calendar, FileCheck
+  Sun, Moon, Briefcase, Activity, BarChart3, Calendar, FileCheck,
+  ShieldAlert, ListTodo, CheckSquare
 } from 'lucide-react';
 
 // Sidebar Component
@@ -188,6 +189,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [quickAccess, setQuickAccess] = useState(null);
+  const [activeQuickTab, setActiveQuickTab] = useState('milestones');
   const [loading, setLoading] = useState(true);
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [newProject, setNewProject] = useState({
@@ -204,12 +207,14 @@ const Dashboard = () => {
 
   const loadDashboardData = async () => {
     try {
-      const [statsRes, projectsRes] = await Promise.all([
+      const [statsRes, projectsRes, quickRes] = await Promise.all([
         axios.get(`${API}/dashboard/stats`, { withCredentials: true }),
-        axios.get(`${API}/projects`, { withCredentials: true })
+        axios.get(`${API}/projects`, { withCredentials: true }),
+        axios.get(`${API}/dashboard/quick-access`, { withCredentials: true })
       ]);
       setStats(statsRes.data);
       setProjects(projectsRes.data);
+      setQuickAccess(quickRes.data);
     } catch (error) {
       console.error('Error loading dashboard:', error);
       if (error.response?.status === 401) {
@@ -456,6 +461,118 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Quick Access: Milestones, Risks, Issues, Decisions, Action Items */}
+        {quickAccess && (
+          <div className="glass-card p-6 mb-8" data-testid="quick-access-section">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">QUICK ACCESS</h3>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {[
+                { id: 'milestones', label: 'Milestones', icon: Target, count: quickAccess.milestones?.length || 0 },
+                { id: 'risk', label: 'Risks', icon: AlertTriangle, count: quickAccess.raid_items?.filter(i => i.type === 'risk').length || 0 },
+                { id: 'issue', label: 'Issues', icon: ShieldAlert, count: quickAccess.raid_items?.filter(i => i.type === 'issue').length || 0 },
+                { id: 'decision', label: 'Decisions', icon: CheckSquare, count: quickAccess.raid_items?.filter(i => i.type === 'decision').length || 0 },
+                { id: 'action_item', label: 'Action Items', icon: ListTodo, count: quickAccess.raid_items?.filter(i => i.type === 'action_item').length || 0 },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveQuickTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                    activeQuickTab === tab.id
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
+                  }`}
+                  data-testid={`quick-tab-${tab.id}`}
+                >
+                  <tab.icon className="w-4 h-4" strokeWidth={1.5} />
+                  {tab.label}
+                  <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${
+                    activeQuickTab === tab.id ? 'bg-white/20' : 'bg-slate-200 dark:bg-white/10'
+                  }`}>{tab.count}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="max-h-[280px] overflow-y-auto" data-testid="quick-access-list">
+              {activeQuickTab === 'milestones' ? (
+                quickAccess.milestones?.length > 0 ? (
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-white/10">
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Milestone</th>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Project</th>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Target Date</th>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Health</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                      {quickAccess.milestones.map((m, i) => (
+                        <tr key={i} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer" onClick={() => window.location.href = `/project/${m.project_id}`}>
+                          <td className="px-3 py-2.5 text-sm font-medium text-slate-900 dark:text-white">{m.title}</td>
+                          <td className="px-3 py-2.5 text-sm text-slate-500">{m.project_name}</td>
+                          <td className="px-3 py-2.5 text-sm text-slate-500">{m.target_date ? new Date(m.target_date).toLocaleDateString() : '-'}</td>
+                          <td className="px-3 py-2.5">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              m.health_status === 'on_track' ? 'bg-emerald-500/20 text-emerald-600' :
+                              m.health_status === 'at_risk' ? 'bg-amber-500/20 text-amber-600' :
+                              'bg-red-500/20 text-red-600'
+                            }`}>
+                              {m.health_status === 'on_track' ? 'On Track' : m.health_status === 'at_risk' ? 'At Risk' : 'Delayed'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : <p className="text-sm text-slate-500 text-center py-6">No milestones found</p>
+              ) : (
+                (() => {
+                  const filtered = quickAccess.raid_items?.filter(i => i.type === activeQuickTab) || [];
+                  return filtered.length > 0 ? (
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-white/10">
+                          <th className="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Title</th>
+                          <th className="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Project</th>
+                          <th className="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Owner</th>
+                          <th className="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Priority</th>
+                          <th className="px-3 py-2 text-left text-xs font-bold uppercase text-slate-500">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                        {filtered.map((item, i) => (
+                          <tr key={i} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer" onClick={() => window.location.href = `/project/${item.project_id}`}>
+                            <td className="px-3 py-2.5">
+                              <div className="text-sm font-medium text-slate-900 dark:text-white">{item.title}</div>
+                              {item.description && <div className="text-xs text-slate-400 truncate max-w-xs">{item.description}</div>}
+                            </td>
+                            <td className="px-3 py-2.5 text-sm text-slate-500">{item.project_name}</td>
+                            <td className="px-3 py-2.5 text-sm text-slate-500">{item.owner || '-'}</td>
+                            <td className="px-3 py-2.5">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                item.priority === 'critical' ? 'bg-red-500/20 text-red-600' :
+                                item.priority === 'high' ? 'bg-orange-500/20 text-orange-600' :
+                                item.priority === 'medium' ? 'bg-amber-500/20 text-amber-600' :
+                                'bg-slate-500/20 text-slate-600'
+                              }`}>{item.priority || 'medium'}</span>
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                item.status === 'open' ? 'bg-amber-500/20 text-amber-600' : 'bg-emerald-500/20 text-emerald-600'
+                              }`}>{item.status}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : <p className="text-sm text-slate-500 text-center py-6">No {activeQuickTab === 'action_item' ? 'action items' : activeQuickTab + 's'} found</p>;
+                })()
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Task Distribution & Projects */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

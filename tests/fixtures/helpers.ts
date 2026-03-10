@@ -1,35 +1,10 @@
 import { Page, expect, BrowserContext } from '@playwright/test';
 
-export const SESSION_TOKEN = 'test_session_1772823453557';
 export const BASE_URL = 'https://weekly-updates-hub.preview.emergentagent.com';
-export const APP_DOMAIN = 'project-planner-ai-1.preview.emergentagent.com';
+export const APP_DOMAIN = 'weekly-updates-hub.preview.emergentagent.com';
 
 export async function waitForAppReady(page: Page) {
   await page.waitForLoadState('domcontentloaded');
-}
-
-export async function setAuthCookie(context: BrowserContext) {
-  await context.addCookies([{
-    name: 'session_token',
-    value: SESSION_TOKEN,
-    domain: APP_DOMAIN,
-    path: '/',
-    httpOnly: true,
-    secure: true,
-    sameSite: 'None'
-  }]);
-}
-
-export async function loginWithCookie(page: Page) {
-  await page.context().addCookies([{
-    name: 'session_token',
-    value: SESSION_TOKEN,
-    domain: APP_DOMAIN,
-    path: '/',
-    httpOnly: true,
-    secure: true,
-    sameSite: 'None'
-  }]);
 }
 
 export async function dismissToasts(page: Page) {
@@ -50,4 +25,24 @@ export async function checkForErrors(page: Page): Promise<string[]> {
     );
     return errorElements.map(el => el.textContent || '').filter(Boolean);
   });
+}
+
+// Navigate to dashboard
+export async function gotoDashboard(page: Page) {
+  await page.goto('/dashboard');
+  await page.waitForLoadState('domcontentloaded');
+  await expect(page.getByTestId('dashboard-main')).toBeVisible({ timeout: 30000 });
+}
+
+// Navigate to sprint board
+export async function gotoSprintBoard(page: Page) {
+  await page.goto('/sprint');
+  await page.waitForLoadState('domcontentloaded');
+  await expect(page.getByTestId('sprint-planner-main')).toBeVisible({ timeout: 30000 });
+}
+
+// Navigate to project detail
+export async function gotoProject(page: Page, projectId: string) {
+  await page.goto(`/project/${projectId}`);
+  await page.waitForLoadState('domcontentloaded');
 }

@@ -1268,6 +1268,55 @@ async def get_dashboard_stats(user: User = Depends(get_current_user)):
         "completed_story_points": completed_story_points
     }
 
+@api_router.get("/dashboard/quick-access")
+async def get_dashboard_quick_access(user: User = Depends(get_current_user)):
+    """Get milestones and RAID items across all projects for dashboard quick access"""
+    projects = await db.projects.find(
+        {"$or": [{"created_by": user.user_id}, {"team_members": user.user_id}]},
+        {"_id": 0, "project_id": 1, "name": 1}
+    ).to_list(100)
+    project_map = {p["project_id"]: p["name"] for p in projects}
+    project_ids = list(project_map.keys())
+
+    milestones = await db.milestones.find(
+        {"project_id": {"$in": project_ids}},
+        {"_id": 0}
+    ).to_list(200)
+    for m in milestones:
+        m["project_name"] = project_map.get(m["project_id"], "Unknown")
+
+    raid_items = await db.raid_items.find(
+        {"project_id": {"$in": project_ids}},
+        {"_id": 0}
+    ).to_list(500)
+    for r in raid_items:
+        r["project_name"] = project_map.get(r["project_id"], "Unknown")
+
+    return {
+        "milestones": milestones,
+        "raid_items": raid_items
+    }
+
+@api_router.get("/stories/all")
+async def get_all_stories(user: User = Depends(get_current_user)):
+    """Get stories across all projects"""
+    projects = await db.projects.find(
+        {"$or": [{"created_by": user.user_id}, {"team_members": user.user_id}]},
+        {"_id": 0, "project_id": 1, "name": 1}
+    ).to_list(100)
+    project_map = {p["project_id"]: p["name"] for p in projects}
+    project_ids = list(project_map.keys())
+
+    stories = await db.stories.find(
+        {"project_id": {"$in": project_ids}},
+        {"_id": 0}
+    ).to_list(1000)
+    for s in stories:
+        s["project_name"] = project_map.get(s["project_id"], "Unknown")
+    return stories
+
+
+
 # ================== WEEKLY UPDATE ROUTES ==================
 
 @api_router.get("/weekly-updates", response_model=List[Dict])

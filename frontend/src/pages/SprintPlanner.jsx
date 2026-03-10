@@ -16,7 +16,7 @@ import {
 
 const SprintPlanner = () => {
   const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedProject, setSelectedProject] = useState('all');
   const [sprints, setSprints] = useState([]);
   const [selectedSprint, setSelectedSprint] = useState('all');
   const [stories, setStories] = useState([]);
@@ -29,7 +29,9 @@ const SprintPlanner = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedProject) {
+    if (selectedProject === 'all') {
+      loadAllStories();
+    } else {
       loadProjectData(selectedProject);
     }
   }, [selectedProject]);
@@ -38,13 +40,32 @@ const SprintPlanner = () => {
     try {
       const response = await axios.get(`${API}/projects`, { withCredentials: true });
       setProjects(response.data);
-      if (response.data.length > 0) {
-        setSelectedProject(response.data[0].project_id);
-      }
+      // Default to all projects
+      loadAllStories();
     } catch (error) {
       console.error('Error loading projects:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAllStories = async () => {
+    try {
+      const [storiesRes, sprintsRes] = await Promise.all([
+        axios.get(`${API}/stories/all`, { withCredentials: true }),
+        // Load sprints from all projects
+        Promise.all(projects.map(p => axios.get(`${API}/sprints?project_id=${p.project_id}`, { withCredentials: true }).catch(() => ({ data: [] }))))
+      ]);
+      setStories(storiesRes.data);
+      const allSprints = sprintsRes.flatMap(r => r.data);
+      setSprints(allSprints);
+    } catch (error) {
+      console.error('Error loading all stories:', error);
+      // Fallback: load stories directly
+      try {
+        const res = await axios.get(`${API}/stories/all`, { withCredentials: true });
+        setStories(res.data);
+      } catch (e) { console.error(e); }
     }
   };
 
@@ -64,6 +85,10 @@ const SprintPlanner = () => {
   const handleAddSprint = async () => {
     if (!newSprint.name.trim()) {
       toast.error('Sprint name is required');
+      return;
+    }
+    if (selectedProject === 'all') {
+      toast.error('Please select a specific project to create a sprint');
       return;
     }
     try {
@@ -181,11 +206,12 @@ const SprintPlanner = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <Select value={selectedProject || ''} onValueChange={setSelectedProject}>
+            <Select value={selectedProject || 'all'} onValueChange={setSelectedProject}>
               <SelectTrigger className="w-56 rounded-xl" data-testid="project-selector">
-                <SelectValue placeholder="Select project" />
+                <SelectValue placeholder="All Projects" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">All Projects</SelectItem>
                 {projects.map(project => (
                   <SelectItem key={project.project_id} value={project.project_id}>
                     {project.name}
@@ -345,9 +371,12 @@ const SprintPlanner = () => {
                                 <Badge className="bg-cyan-500/10 text-cyan-600 text-xs">{story.epic}</Badge>
                               )}
                             </div>
-                            <h4 className="font-medium text-sm text-slate-900 dark:text-white mb-2 line-clamp-2">
+                            <h4 className="font-medium text-sm text-slate-900 dark:text-white mb-1 line-clamp-2">
                               {story.title}
                             </h4>
+                            {selectedProject === 'all' && story.project_name && (
+                              <p className="text-xs text-slate-400 mb-1 truncate">{story.project_name}</p>
+                            )}
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2 text-xs text-slate-400">
                                 <Badge className="bg-blue-500/10 text-blue-600">{story.story_points || 0} pts</Badge>

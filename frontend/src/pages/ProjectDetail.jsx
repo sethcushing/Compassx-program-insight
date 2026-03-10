@@ -95,7 +95,7 @@ const WeeklyUpdatesSection = ({ projectId }) => {
         <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">WEEKLY UPDATES</h3>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="rounded-full bg-blue-600 text-white">
+            <Button size="sm" className="rounded-full bg-blue-600 text-white" data-testid="add-weekly-update-btn">
               <Plus className="w-4 h-4 mr-2" /> Add Update
             </Button>
           </DialogTrigger>
@@ -132,48 +132,100 @@ const WeeklyUpdatesSection = ({ projectId }) => {
           <p className="text-slate-500">No weekly updates yet. Start tracking your project health!</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {updates.map((update) => (
-            <div key={update.update_id} className="border border-slate-200 dark:border-white/10 rounded-xl p-4 hover:shadow-md transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-blue-600">{formatWeek(update.week_start)}</span>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => { setEditingUpdate({...update}); setIsEditOpen(true); }}>
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Update?</AlertDialogTitle>
-                        <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(update.update_id)} className="bg-red-500">Delete</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+        <div>
+          {/* Latest Update - Highlighted */}
+          <div className="border-2 border-blue-200 dark:border-blue-500/30 rounded-xl p-5 mb-4 bg-blue-50/50 dark:bg-blue-500/5" data-testid="latest-weekly-update">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-blue-500/20 text-blue-600 text-xs">Latest</Badge>
+                <span className="font-semibold text-blue-600">{formatWeek(updates[0].week_start)}</span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-lg p-3">
-                  <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm mb-2">
-                    <CheckCircle2 className="w-4 h-4" /> Going Well
-                  </div>
-                  <p className="text-sm text-slate-700 dark:text-slate-300">{update.whats_going_well || 'No updates'}</p>
-                </div>
-                <div className="bg-amber-50 dark:bg-amber-500/10 rounded-lg p-3">
-                  <div className="flex items-center gap-2 text-amber-600 font-medium text-sm mb-2">
-                    <AlertTriangle className="w-4 h-4" /> Roadblocks
-                  </div>
-                  <p className="text-sm text-slate-700 dark:text-slate-300">{update.roadblocks || 'None reported'}</p>
-                </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => { setEditingUpdate({...updates[0]}); setIsEditOpen(true); }}>
+                  <Edit2 className="w-4 h-4" />
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Update?</AlertDialogTitle>
+                      <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete(updates[0].update_id)} className="bg-red-500">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
-          ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-lg p-3">
+                <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm mb-2">
+                  <CheckCircle2 className="w-4 h-4" /> Going Well
+                </div>
+                <p className="text-sm text-slate-700 dark:text-slate-300">{updates[0].whats_going_well || 'No updates'}</p>
+              </div>
+              <div className="bg-amber-50 dark:bg-amber-500/10 rounded-lg p-3">
+                <div className="flex items-center gap-2 text-amber-600 font-medium text-sm mb-2">
+                  <AlertTriangle className="w-4 h-4" /> Roadblocks
+                </div>
+                <p className="text-sm text-slate-700 dark:text-slate-300">{updates[0].roadblocks || 'None reported'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Previous Updates - Rolling Scroll */}
+          {updates.length > 1 && (
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400 mb-3">Previous Updates</h4>
+              <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1" data-testid="weekly-updates-scroll">
+                {updates.slice(1).map((update) => (
+                  <div key={update.update_id} className="border border-slate-200 dark:border-white/10 rounded-xl p-4 hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-semibold text-blue-600 text-sm">{formatWeek(update.week_start)}</span>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => { setEditingUpdate({...update}); setIsEditOpen(true); }}>
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Update?</AlertDialogTitle>
+                              <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(update.update_id)} className="bg-red-500">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm mb-2">
+                          <CheckCircle2 className="w-4 h-4" /> Going Well
+                        </div>
+                        <p className="text-sm text-slate-700 dark:text-slate-300">{update.whats_going_well || 'No updates'}</p>
+                      </div>
+                      <div className="bg-amber-50 dark:bg-amber-500/10 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-amber-600 font-medium text-sm mb-2">
+                          <AlertTriangle className="w-4 h-4" /> Roadblocks
+                        </div>
+                        <p className="text-sm text-slate-700 dark:text-slate-300">{update.roadblocks || 'None reported'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1316,47 +1368,26 @@ const ProjectDetail = () => {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="glass-card p-6">
-                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">PROJECT DETAILS</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Status</span>
-                    <Badge className="bg-emerald-500/20 text-emerald-600">{project.status}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Start Date</span>
-                    <span className="text-slate-900 dark:text-white font-medium">{project.start_date || 'Not set'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Target Date</span>
-                    <span className="text-slate-900 dark:text-white font-medium">{project.target_date || 'Not set'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Priority</span>
-                    {getPriorityBadge(project.priority)}
-                  </div>
+            <div className="glass-card p-6">
+              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">PROJECT DETAILS</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Status</span>
+                  <Badge className="bg-emerald-500/20 text-emerald-600">{project.status}</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Start Date</span>
+                  <span className="text-slate-900 dark:text-white font-medium text-sm">{project.start_date || 'Not set'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Target Date</span>
+                  <span className="text-slate-900 dark:text-white font-medium text-sm">{project.target_date || 'Not set'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Priority</span>
+                  {getPriorityBadge(project.priority)}
                 </div>
               </div>
-
-              {project.phases && project.phases.length > 0 && (
-                <div className="glass-card p-6">
-                  <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">PROJECT PHASES</h3>
-                  <div className="space-y-3">
-                    {project.phases.map((phase, index) => (
-                      <div key={index} className="flex items-center gap-4">
-                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600 font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-slate-900 dark:text-white">{phase.name}</div>
-                          <div className="text-sm text-slate-500">{phase.duration_weeks} weeks</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Weekly Updates Section */}

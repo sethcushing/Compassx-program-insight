@@ -6,7 +6,6 @@
 - `Dockerfile` - Multi-stage build (Node + Python)
 - `.dockerignore` - Excludes unnecessary files
 - `DEPLOYMENT.md` - Complete deployment guide
-- `.env.production.example` - Environment variable template
 
 ### MongoDB Production
 ```
@@ -45,32 +44,40 @@ Koyeb Container (Port 8000)
 - Code Red Tracker (Seth)
 - Change Management Transformation (Charlene)
 
-## Features
+## Features Implemented
 - Project Management with Milestones, Stories
 - RAID Log (Risks, Issues, Action Items, Decisions)
 - Weekly Updates tracking
 - Change Management with approval workflow
-- Sprint Board (Kanban)
-- AI Copilot
+- Sprint Board (Kanban) with All Projects view
+- Dashboard Quick Access (Milestones, Risks, Issues, Decisions, Action Items)
+- AI Copilot (configured, not yet active)
 
 ## What's Been Implemented
+
+### Session 1 (Previous)
+- Core CRUD: Projects, Stories, Sprints, Milestones, Tasks, Risks
 - Weekly Updates, RAID Log, Change Management features
 - Custom seed data for projects and people
 - Authentication fully removed (app is public)
 - Dockerfile & deployment docs for Koyeb
-- UI branding updates (removed Emergent badge, updated page title)
-- Refined Project Detail page UI with consolidated tabs
+- UI branding updates
 
-## Docker Build Fix (Feb 2026)
-- Fixed Dockerfile to explicitly use `yarn install --frozen-lockfile` and `yarn build`
-- Root cause: `react-day-picker@8.10.1` has peer dep `react: ^16-18` which conflicts with React 19. Yarn handles this gracefully; npm fails.
-- Removed conditional npm fallback logic — yarn.lock is the source of truth
+### Session 2 (Current - Feb 2026)
+- **Docker Build Fix**: Dockerfile now uses `yarn install` directly (no frozen-lockfile, no npm fallback) to handle React 19 peer dep conflicts with react-day-picker
+- **Dashboard Quick Access**: New section with tabbed view of Milestones (30), Risks (15), Issues (15), Decisions (20), Action Items (20) across all projects. Clickable rows navigate to project detail.
+- **Sprint Board All Projects**: Defaults to showing stories from all projects with project names on cards. Dropdown filter for specific project.
+- **Project Detail Overview Cleanup**: Removed Project Phases section. Latest weekly update highlighted with "Latest" badge. Previous updates in scrollable container.
+
+### New Backend Endpoints Added
+- `GET /api/dashboard/quick-access` - Cross-project milestones + RAID items
+- `GET /api/stories/all` - Stories from all projects with project_name
 
 ## Prioritized Backlog
 ### P1
 - Refactor `server.py` into separate route files
 - Break up `ProjectDetail.jsx` into smaller components
-- Comprehensive E2E testing
+- Comprehensive E2E test execution
 
 ### P2
 - AI Project Creator (generate project plans from prompt)
