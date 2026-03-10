@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { API, useAuth, useTheme } from '../App';
+import { API, useTheme } from '../App';
 import { toast } from 'sonner';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
@@ -15,14 +15,12 @@ import {
 import {
   Sparkles, LayoutDashboard, FolderKanban, Users, Target, MessageSquare,
   Plus, ChevronRight, TrendingUp, AlertTriangle, CheckCircle2, Clock,
-  Sun, Moon, LogOut, Briefcase, Activity, BarChart3, Calendar, FileCheck
+  Sun, Moon, Briefcase, Activity, BarChart3, Calendar, FileCheck
 } from 'lucide-react';
 
 // Sidebar Component
 export const Sidebar = ({ currentPage }) => {
   const { theme, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', id: 'dashboard' },
@@ -34,11 +32,6 @@ export const Sidebar = ({ currentPage }) => {
     { icon: FileCheck, label: 'Change Mgmt', href: '/changes', id: 'changes' },
     { icon: MessageSquare, label: 'AI Copilot', href: '/copilot', id: 'copilot' },
   ];
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
 
   return (
     <aside className="glass-sidebar w-20 lg:w-64 flex flex-col" data-testid="sidebar">
@@ -77,8 +70,8 @@ export const Sidebar = ({ currentPage }) => {
         </ul>
       </nav>
 
-      {/* Footer */}
-      <div className="p-3 lg:p-4 border-t border-white/10 space-y-2">
+      {/* Footer - Theme Toggle Only */}
+      <div className="p-3 lg:p-4 border-t border-white/10">
         <button
           onClick={toggleTheme}
           className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
@@ -91,32 +84,6 @@ export const Sidebar = ({ currentPage }) => {
           )}
           <span className="hidden lg:block font-medium">{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
         </button>
-        
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all"
-          data-testid="logout-button"
-        >
-          <LogOut className="w-5 h-5" strokeWidth={1.5} />
-          <span className="hidden lg:block font-medium">Logout</span>
-        </button>
-
-        {/* User Info */}
-        {user && (
-          <div className="hidden lg:flex items-center gap-3 px-3 py-3">
-            {user.picture ? (
-              <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full" />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center text-white text-sm font-medium">
-                {user.name?.[0]?.toUpperCase() || 'U'}
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user.name}</p>
-              <p className="text-xs text-slate-500 truncate">{user.email}</p>
-            </div>
-          </div>
-        )}
       </div>
     </aside>
   );
@@ -219,8 +186,6 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const Dashboard = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -304,7 +269,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-              Welcome back, {user?.name?.split(' ')[0] || 'User'}
+              Program Insights Dashboard
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">
               Here's an overview of your project portfolio

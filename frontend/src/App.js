@@ -1,10 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
 
 // Pages
-import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import ProjectCreator from './pages/ProjectCreator';
 import ProjectDetail from './pages/ProjectDetail';
@@ -54,7 +52,7 @@ const ThemeProvider = ({ children }) => {
   );
 };
 
-// Auth Context
+// Auth Context (simplified - no login required)
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -64,146 +62,40 @@ export const useAuth = () => {
 };
 
 const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Default user - no login required
+  const [user] = useState({
+    user_id: 'default_user',
+    name: 'Guest User',
+    email: 'guest@compassx.com'
+  });
 
-  const checkAuth = useCallback(async () => {
-    // CRITICAL: If returning from OAuth callback, skip the /me check.
-    // AuthCallback will exchange the session_id and establish the session first.
-    if (window.location.hash?.includes('session_id=')) {
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      const response = await axios.get(`${API}/auth/me`, { withCredentials: true });
-      setUser(response.data);
-    } catch (error) {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  const logout = async () => {
-    try {
-      await axios.post(`${API}/auth/logout`, {}, { withCredentials: true });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-    setUser(null);
+  const logout = () => {
+    // No-op since login is disabled
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading: false, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Auth Callback Component
-const AuthCallback = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { setUser } = useAuth();
-  const hasProcessed = useRef(false);
-
-  useEffect(() => {
-    if (hasProcessed.current) return;
-    hasProcessed.current = true;
-
-    const processAuth = async () => {
-      const hash = location.hash;
-      const sessionIdMatch = hash.match(/session_id=([^&]+)/);
-      
-      if (sessionIdMatch) {
-        const sessionId = sessionIdMatch[1];
-        try {
-          const response = await axios.post(
-            `${API}/auth/session`,
-            { session_id: sessionId },
-            { withCredentials: true }
-          );
-          setUser(response.data);
-          navigate('/dashboard', { replace: true, state: { user: response.data } });
-        } catch (error) {
-          console.error('Auth callback error:', error);
-          const errorMsg = error.response?.data?.detail || 'Authentication failed';
-          navigate('/', { replace: true, state: { error: errorMsg } });
-        }
-      } else {
-        navigate('/', { replace: true });
-      }
-    };
-
-    processAuth();
-  }, [location, navigate, setUser]);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B0F19]">
-      <div className="glass-card p-8 text-center">
-        <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-slate-600 dark:text-slate-400">Authenticating...</p>
-      </div>
-    </div>
-  );
-};
-
-// Protected Route
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-  const location = useLocation();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B0F19]">
-        <div className="glass-card p-8 text-center">
-          <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If user data passed from AuthCallback, use it
-  if (location.state?.user) {
-    return children;
-  }
-
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
-
-// App Router
+// App Router - No protected routes needed
 const AppRouter = () => {
-  const location = useLocation();
-  
-  // Check URL fragment for session_id synchronously during render
-  if (location.hash?.includes('session_id=')) {
-    return <AuthCallback />;
-  }
-
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/create" element={<ProtectedRoute><ProjectCreator /></ProtectedRoute>} />
-      <Route path="/project/:projectId" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
-      <Route path="/sprint" element={<ProtectedRoute><SprintPlanner /></ProtectedRoute>} />
-      <Route path="/resources" element={<ProtectedRoute><ResourceManager /></ProtectedRoute>} />
-      <Route path="/portfolio" element={<ProtectedRoute><PortfolioDashboard /></ProtectedRoute>} />
-      <Route path="/copilot" element={<ProtectedRoute><AICopilot /></ProtectedRoute>} />
-      <Route path="/projects" element={<ProtectedRoute><AllProjects /></ProtectedRoute>} />
-      <Route path="/program" element={<ProtectedRoute><ProgramView /></ProtectedRoute>} />
-      <Route path="/changes" element={<ProtectedRoute><ChangeManagementDashboard /></ProtectedRoute>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/create" element={<ProjectCreator />} />
+      <Route path="/project/:projectId" element={<ProjectDetail />} />
+      <Route path="/sprint" element={<SprintPlanner />} />
+      <Route path="/resources" element={<ResourceManager />} />
+      <Route path="/portfolio" element={<PortfolioDashboard />} />
+      <Route path="/copilot" element={<AICopilot />} />
+      <Route path="/projects" element={<AllProjects />} />
+      <Route path="/program" element={<ProgramView />} />
+      <Route path="/changes" element={<ChangeManagementDashboard />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 };

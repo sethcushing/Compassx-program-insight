@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { API, useAuth } from '../App';
+import { API } from '../App';
 import { toast } from 'sonner';
 import { Sidebar } from './Dashboard';
 import { Button } from '../components/ui/button';
@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 
 const AICopilot = () => {
-  const { user } = useAuth();
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState('all');
   const [messages, setMessages] = useState([]);
@@ -26,7 +25,7 @@ const AICopilot = () => {
     setMessages([{
       id: 'welcome',
       role: 'assistant',
-      content: `Hello${user?.name ? `, ${user.name.split(' ')[0]}` : ''}! I'm your AI Project Copilot. I can help you with:
+      content: `Hello! I'm your AI Project Copilot. I can help you with:
 
 • **Project insights** - Ask about status, risks, or blockers
 • **Task management** - Find overdue tasks or workload issues  

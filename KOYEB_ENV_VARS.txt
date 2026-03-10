@@ -9,16 +9,6 @@ MONGO_URL=mongodb+srv://sethcushing:compassx@compassxprograminsight.htuibk0.mong
 DB_NAME=compassx_prod
 
 # ================================================
-# GOOGLE OAUTH (Get from Google Cloud Console)
-# https://console.cloud.google.com/apis/credentials
+# NOTE: Google OAuth is DISABLED
+# No authentication required to access the app
 # ================================================
-
-GOOGLE_CLIENT_ID=<your-google-client-id>
-
-GOOGLE_CLIENT_SECRET=<your-google-client-secret>
-
-# ================================================
-# APP URL (Update after Koyeb assigns your domain)
-# ================================================
-
-APP_URL=https://compassx-<your-name>.koyeb.app
