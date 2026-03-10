@@ -3,17 +3,20 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
-# Copy package files
-COPY frontend/package.json frontend/yarn.lock ./
+# Copy package files (handle both yarn and npm)
+COPY frontend/package.json ./
+COPY frontend/yarn.lock* frontend/package-lock.json* ./
 
-# Install dependencies
-RUN yarn install --frozen-lockfile
+# Install dependencies (prefer yarn if lock exists, fallback to npm)
+RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
+    elif [ -f package-lock.json ]; then npm ci; \
+    else npm install; fi
 
 # Copy frontend source
 COPY frontend/ ./
 
 # Build frontend
-RUN yarn build
+RUN npm run build
 
 # Production stage
 FROM python:3.11-slim
@@ -24,6 +27,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     nginx \
     supervisor \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend requirements and install

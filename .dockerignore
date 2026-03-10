@@ -13,8 +13,8 @@ dist/
 # Environment files (use Koyeb env vars instead)
 .env
 .env.local
-.env.production
 backend/.env
+# Keep frontend/.env.production for build
 
 # Git
 .git/
