@@ -19,8 +19,6 @@ Database: compassx_prod
 |----------|-------|
 | MONGO_URL | mongodb+srv://sethcushing:compassx@compassxprograminsight.htuibk0.mongodb.net/?appName=CompassXProgramInsight |
 | DB_NAME | compassx_prod |
-| GOOGLE_CLIENT_ID | (from Google Console) |
-| GOOGLE_CLIENT_SECRET | (from Google Console) |
 | APP_URL | https://your-app.koyeb.app |
 
 ### Architecture
@@ -54,3 +52,32 @@ Koyeb Container (Port 8000)
 - Change Management with approval workflow
 - Sprint Board (Kanban)
 - AI Copilot
+
+## What's Been Implemented
+- Weekly Updates, RAID Log, Change Management features
+- Custom seed data for projects and people
+- Authentication fully removed (app is public)
+- Dockerfile & deployment docs for Koyeb
+- UI branding updates (removed Emergent badge, updated page title)
+- Refined Project Detail page UI with consolidated tabs
+
+## Docker Build Fix (Feb 2026)
+- Fixed Dockerfile to explicitly use `yarn install --frozen-lockfile` and `yarn build`
+- Root cause: `react-day-picker@8.10.1` has peer dep `react: ^16-18` which conflicts with React 19. Yarn handles this gracefully; npm fails.
+- Removed conditional npm fallback logic — yarn.lock is the source of truth
+
+## Prioritized Backlog
+### P1
+- Refactor `server.py` into separate route files
+- Break up `ProjectDetail.jsx` into smaller components
+- Comprehensive E2E testing
+
+### P2
+- AI Project Creator (generate project plans from prompt)
+- AI Copilot enhancements
+- Resource Manager page
+
+### P3
+- AI-powered predictive features
+- GitHub/Jira integrations
+- Automated reporting center

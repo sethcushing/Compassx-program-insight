@@ -3,20 +3,17 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
-# Copy package files
-COPY frontend/package.json ./
-COPY frontend/yarn.lock* frontend/package-lock.json* ./
+# Copy package files and lockfile
+COPY frontend/package.json frontend/yarn.lock ./
 
-# Install dependencies
-RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-    elif [ -f package-lock.json ]; then npm ci --legacy-peer-deps; \
-    else npm install --legacy-peer-deps; fi
+# Install dependencies using yarn (yarn handles peer dep conflicts gracefully)
+RUN yarn install --frozen-lockfile
 
 # Copy frontend source
 COPY frontend/ ./
 
-# Build frontend
-RUN npm run build
+# Build frontend (REACT_APP_BACKEND_URL defaults to '' for relative URLs via Nginx proxy)
+RUN yarn build
 
 # Production stage
 FROM python:3.11-slim

@@ -1,107 +1,94 @@
-<analysis>An analysis of the user's request and the AI agent's actions shows that the agent has successfully set up the initial project structure, implemented a glassmorphism UI, and handled several rounds of user feedback. However, the agent is currently in the middle of a major feature implementation and has not yet tested the extensive changes. The next agent must prioritize testing and stabilizing the current work before proceeding. The previous test run for CRUD operations was also interrupted by new user requirements, and its results were never analyzed, which poses a risk of hidden bugs.
+<analysis>An analysis of the user's request and the AI agent's actions shows that the agent has successfully implemented several major features, including a RAID log, weekly updates, and a change management system. The agent also fulfilled the user's request to remove the entire authentication layer and prepare the application for deployment on Koyeb by creating a  and other necessary configuration files. However, the deployment process is currently blocked by a Docker build failure related to a frontend dependency conflict. The next agent's first priority must be to resolve this build issue and ensure the application can be successfully deployed.
 
 Here is the handover summary:
 
 **original_problem_statement:**
-The user wants to build a highly graphical, modern, AI-native project management platform called AI-Driven Project Intelligence Platform.
+The user wants to build a highly graphical, modern, AI-native project management platform called AI-Driven Project Intelligence Platform. The initial scope included AI-powered features, user authentication, and a glassmorphism UI.
+
+Recent user requests have significantly evolved the project:
+- Add features for Weekly Updates, a RAID Log (Risk, Assumptions, Issues, Dependencies), and a Change Management system.
+- Replace all demo data with a specific list of projects and people.
+- Prepare the application for deployment on Koyeb.
+- Remove the Made with Emergent branding and update the browser tab title.
+- **Completely remove the user login and authentication process.**
 
 **PRODUCT REQUIREMENTS:**
-- **Core Functionality:** Automate project planning, tracking, reporting, and decision-making. It should act as an AI Project Intelligence System.
-- **AI Capabilities:**
-    - Automated project planning from prompts.
-    - Intelligent user story generation.
-    - Resource and capacity management.
-    - Milestone tracking with predictive risk detection.
-    - Automated task updates via integrations (GitHub, Jira, etc.).
-    - AI-generated status reporting.
-    - Predictive planning and scenario simulation.
-    - Cross-team dependency management.
-    - Knowledge capture and documentation automation.
-    - Portfolio-level leadership visibility.
-- **Extended AI Features:** AI Copilot, Autonomous planning assistant, Meeting intelligence.
-- **Architecture:** Modular architecture with specified layers (Experience, Orchestration, Model, Data, Integration, Security).
-- **Data Models:** Project, Task, Milestone, Resource, Story, Report.
-- **UI/UX:**
-    - Modern, enterprise-grade, highly interactive.
-    - Glassmorphism styling, smooth transitions.
-    - Light and Dark modes.
-    - Primary fonts: Inter or Lato.
-    - Pages: AI Project Creator, Project Dashboard, Sprint Planner, Resource Manager, etc.
-- **User Selections:**
-    - **AI:** OpenAI GPT-5.2
-    - **Auth:** Emergent Google social login (restricted to CompassX emails).
-    - **Integrations:** None for the MVP.
-    - **Theme:** Start with Light Mode.
-    - **Design:** Glassmorphism, Lato fonts, blue color tones.
+- **Core Functionality:** Automate project planning, tracking, reporting, and decision-making.
+- **Key Features (Implemented):** Project/Sprint/Story management, Weekly Updates, RAID Log, Change Management Dashboard.
+- **UI/UX:** Modern, glassmorphism styling with a blue color theme.
+- **Authentication:** Explicitly removed by user request. The application is now publicly accessible.
+- **Deployment:** Target platform is Koyeb, requiring a working Docker setup.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A full-stack application with a React frontend and FastAPI backend.
-- **Backend:** Features FastAPI server with endpoints for Google OAuth, CRUD operations for projects, stories, and sprints. It connects to a MongoDB database and includes a script to seed demo data.
-- **Frontend:** A React application styled with TailwindCSS, featuring a glassmorphism design and a blue color scheme. It includes pages for a Landing Page, Dashboard (with charts), Sprint Planner (Kanban), AI Copilot, and newly created (but untested) pages for All Projects and Program View.
-- **Authentication:** Emergent-managed Google social login is implemented, restricted to a specific domain.
+A full-stack application with a React frontend and a FastAPI backend, configured for a Docker-based deployment.
+- **Backend:** A FastAPI server with CRUD endpoints for projects, stories, sprints, weekly updates, RAID items, and change requests. Authentication has been removed by implementing a default user, making all APIs publicly accessible. The database is populated by a  script containing user-specified data.
+- **Frontend:** A React application styled with TailwindCSS. The login flow has been removed, and the app navigates directly to a dashboard. It includes pages for a Dashboard, Sprint Planner, Project Details, a Change Management Dashboard, and others. The Project Detail page is the main hub, featuring tabs for Overview (with Weekly Updates), Stories, Milestones, RAID Log, and Change Management.
+- **Deployment:** The repository contains a multi-stage , , , and documentation (, ) to facilitate deployment on Koyeb.
 
 **Last working item**:
-- **Last item agent was working:** The agent was implementing a major feature request from the user (Message 93). The final step taken was creating the  file to replace the old Portfolio View. This was part of a larger set of changes including:
-    1.  Switching the Kanban board from Tasks to Stories.
-    2.  Adding Sprint management within projects.
-    3.  Replacing the Team Performance chart with a Story point total vs completed chart on the Dashboard.
-    4.  Adding an All Projects page.
-    5.  Renaming Portfolio View to Program View.
-- **Status:** IN PROGRESS
-- **Agent Testing Done:** N
-- **Which testing method agent to use?** both. The changes affect the backend data models (, ), API endpoints (), and multiple frontend pages. A full end-to-end test is required.
+- **Last item agent was working:** Fixing a Docker build failure reported by the user from their Koyeb deployment environment. The build was failing due to a frontend dependency conflict between  and .
+- The agent attempted to resolve this by updating the  version in , regenerating the  file, and modifying the  to use  as a fallback during the build process.
+- **Status:** USER VERIFICATION PENDING
+- **Agent Testing Done:** N (Agent cannot run Docker builds in its environment).
+- **Which testing method agent to use?** Manual testing by user. The next agent must ask the user to attempt the deployment again and provide the new build logs.
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1:** The test results for the CRUD implementation were never processed. The agent initiated a test run (Message 91) but was interrupted by a new user request (Message 93) before the results were available. There may be undiscovered bugs in the create, edit, and delete functionality.
-    - **Priority:** P1
+- **Issue 1: Docker Build Failure on Koyeb (P0)**
+    - **Description:** The deployment is blocked because the Docker build fails during the  step due to an upstream dependency conflict with .
+    - **Attempted fixes:** The agent has updated  to align the  version and updated the  to be more resilient.
+    - **Next debug checklist:**
+        1.  Confirm with the user that the  file is committed to their GitHub repository.
+        2.  Ask the user to trigger a new build on Koyeb.
+        3.  If it fails, analyze the new build logs to see if the error has changed.
+    - **Status:** USER VERIFICATION PENDING
+    - **Is recurring issue?** Y
+
+- **Issue 2: Comprehensive E2E Testing Needed (P1)**
+    - **Description:** The application has undergone major architectural changes (authentication removal) and has several new features (RAID, Change Mgt). A full end-to-end test has not been performed since these changes. The initial handoff also noted that CRUD testing was skipped.
+    - **Attempted fixes:** None.
+    - **Next debug checklist:** Once the deployment is stable (P0 is resolved), call the  in  mode to create a new, comprehensive test suite covering all features.
+    - **Why fix this issue and what will be achieved with this?** To ensure application stability and catch any regressions introduced by the recent major changes.
     - **Status:** BLOCKED
-    - **Blocked on:** P0 task completion. This should be re-tested after the current feature is stable.
+    - **Blocked on other issue:** Issue 1: Docker Build Failure on Koyeb
 
 **In progress Task List**:
-- **Task 1: Complete and Test Major Feature Overhaul (P0)**
-    - **Description:** The agent implemented significant changes based on user request in message 93 but has not tested them. This task involves verifying all related changes work together correctly.
-    - **Where to resume:** All necessary files have been created or updated. The next step is to call the  to perform a comprehensive test of the new functionality. The test plan should cover:
-        1.  Verification that the Sprint Planner Kanban board correctly displays Stories.
-        2.  Confirmation that the Dashboard shows the new Story Points chart and that it fetches the correct data from .
-        3.  Ability to create Sprints and assign Stories to them.
-        4.  Functionality of the new All Projects and Program View pages.
-        5.  Verification of the updated  script.
-    - **What will be achieved with this?** A stable application that incorporates the user's latest core requirements for project and sprint management.
-    - **Status:** IN PROGRESS
-    - **Should Test frontend/backend/both after fix?** both
+- None.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-    - **P1: Full AI Feature Implementation:**
-        - **AI Project Creator:** Fully implement the feature to generate project plans, phases, milestones, and tasks from a user prompt using the integrated OpenAI model. (Currently a placeholder UI).
-        - **AI Copilot:** Enhance the copilot to be a functional conversational assistant that can answer questions and perform actions. (Currently a placeholder UI).
-    - **P1: Resource Management:** Implement the Resource Manager page with full CRUD for resources, skills, and availability tracking.
-    - **P2: Predictive Features:** Implement AI-powered risk detection, milestone health indicators, and predictive planning.
+    - **P1: Refactor Large Components:**
+        - Refactor  by splitting routes into separate files (e.g., ).
+        - Refactor  by breaking out inline components (, , etc.) into their own files.
+    - **P2: Full AI Feature Implementation:**
+        - **AI Project Creator:** Implement the feature to generate project plans from a prompt.
+        - **AI Copilot:** Enhance the conversational assistant.
 - **Future Tasks:**
-    - **Integrations:** Add integrations with engineering systems (GitHub, GitLab, Jira) to automate task updates.
-    - **Reporting:** Build the automated reporting center.
-    - **Advanced AI:** Implement meeting intelligence and autonomous planning assistant features.
-    - **Dependency Management:** Create the interactive dependency map.
+    - Implement the Resource Manager page.
+    - Add AI-powered predictive features (risk detection, milestone health).
+    - Add integrations with GitHub and Jira.
+    - Build the automated reporting center.
 
 **Completed work in this session**
-- **Recently completed:**
-  - Initial project scaffolding (FastAPI backend, React frontend) (DONE)
-  - Google Social Login with domain restriction (DONE)
-  - Glassmorphism UI with Light/Dark modes (DONE)
-  - Base pages created: Landing, Dashboard, Sprint Planner, AI Copilot (DONE)
-  - Color scheme updated from purple to blue tones (DONE)
-  - Backend models and APIs for Sprints and Stories (DONE, but untested)
-  - UI updated to reflect new Sprint/Story structure (DONE, but untested)
+- **Feature Delivery:**
+  - Weekly Updates, RAID Log, and Change Management features (DONE)
+  - Custom seed data for projects and people (DONE)
+- **Architectural Changes:**
+  - Complete removal of user authentication and login flow (DONE)
+- **Deployment Prep:**
+  -  and deployment documentation for Koyeb (DONE)
+- **UI/Branding:**
+  - Removed Made with Emergent badge and updated page title (DONE)
+  - Refined Project Detail page UI to consolidate tabs (DONE)
 
 **Earlier issues found/mentioned but not fixed**
-   - **Issue 1:** Potential bugs in CRUD functionality.
-     - **Debug checklist:** The  was called in Message 91 to test CRUD, but the results were never observed or acted upon due to user interruption. The agent should re-run the  in  mode focusing on the CRUD test cases after the current P0 task is complete.
-     - **Why to solve this issue and what will be achieved with this?** To ensure users can reliably create, edit, and delete projects, tasks, stories, and other entities as requested.
+   - **Issue 1: Monolithic  and  files.**
+     - **Debug checklist:** This was identified in the previous handoff and has worsened with the addition of new features. A refactoring task should be planned after the deployment is stable.
+     - **Why to solve this issue and what will be achieved with this?** To improve code maintainability, readability, and scalability.
      - **Should Test frontend/backend/both after fix:** both
-     - **Is recurring issue?** N
+     - **Is recurring issue?** Y
 
 **Known issue recurrence from previous fork**
   - None.
@@ -112,63 +99,1304 @@ A full-stack application with a React frontend and FastAPI backend.
 **Key Technical Concepts**
 - **Backend:** FastAPI, MongoDB (via ), Pydantic
 - **Frontend:** React, TailwindCSS, Recharts
-- **Authentication:** Google OAuth 2.0
-- **Design:** Glassmorphism
-- **Deployment:** Docker container environment managed by Supervisor.
+- **Deployment:** Docker, Nginx (as reverse proxy in Docker)
 
 **key DB schema**
 - **projects:** 
 - **stories:** 
 - **sprints:** 
-- **tasks:** 
-- **milestones:** 
+- **weekly_updates:** 
+- **raid_items:** 
+- **change_requests:** 
 
 **changes in tech stack**
 - None.
 
 **All files of reference**
-- : Contains all FastAPI routes, data models, and business logic. Has grown large and could be a candidate for refactoring into separate routers.
-- : Creates demo data on startup. Recently updated to include sprints.
-- : The Kanban board view, recently changed to display Stories instead of Tasks.
-- : The main dashboard, recently updated to show a Story Points chart.
-- : A newly created page to list all projects.
-- : A newly created page to provide a portfolio/program level overview.
-- : Defines the blue color theme and glassmorphism plugins.
+- : Contains build logic; the source of the current blocking issue.
+- : Was modified to fix a dependency version conflict.
+- : Heavily modified to add new models/endpoints and remove authentication.
+- : Heavily modified with new tabs and UI logic.
+- : Modified to remove routing logic for authentication.
+- : Completely rewritten with user's custom data.
+- : Contains the list of variables for deployment.
 
 **Areas that need refactoring**:
-- : This file has become a monolith containing all data models and API endpoints. It should be refactored by splitting the routes into separate files (e.g., , ) for better maintainability.
+- : This monolithic file contains all data models and API endpoints. It should be broken into a  directory.
+- : This file exceeds 1000 lines and defines multiple components internally. These should be extracted into separate files in the  directory.
 
 **key api endpoints**
 - , , 
-- , 
-- , 
 - 
 - 
+- 
+- 
+- Note: All endpoints are now public and do not require an auth token.
 
 **Critical Info for New Agent**
-- You are in the middle of a major feature implementation. Your immediate priority is to run the  to verify all the recent changes related to Sprints, Stories, the Dashboard chart, and the new All Projects and Program View pages.
-- Do not start any new features until the current work is tested and stable.
-- Be aware that a previous test run for CRUD functionality was never completed. Once the current feature is verified, you should re-test the CRUD operations to ensure no bugs were missed.
-- The  file is getting very large. Consider planning a refactor to split it into smaller, more manageable route files after the current high-priority tasks are completed.
+- **Your immediate and only priority is to resolve the Docker build failure.** Do not start any other task. Your first action should be to ask the user to re-run the build on Koyeb and provide the new logs.
+- The entire authentication system has been disabled by user request. The app is intended to be public.
+- The  and  files are very large and need refactoring, but this should only be addressed *after* the application is successfully deployed and stable.
 
 **documents and test reports created in this job**
 - 
+- 
+- 
+- 
+- 
 
 **Last 10 User Messages and any pending HUMAN messages**
-- **User (Message 93):** Requested major changes: Stories on Kanban board, replace Team Performance chart with Story Points chart, add Sprints to Projects, add an All Projects menu, and change Portfolio View to Program View with drill-down. **Status: IN PROGRESS**.
-- **User (Message 56):** Requested full CRUD functionality for all entities (projects, tasks, milestones, etc.) and to change the UI color from purple to blue tones. **Status: PARTIALLY COMPLETED** (Implementation done, but testing was interrupted).
+- **User (Message 363):** Reports a Docker build failure on Koyeb due to a  dependency conflict. **Status: IN PROGRESS**.
+- **User (Message 345):** Reports an earlier Docker build failure on Koyeb because  was not found. **Status: RESOLVED**.
+- **User (Message 274):** Requests the removal of the login process. **Status: COMPLETED**.
+- **User (Message 259):** Requests removal of the Emergent badge, a new page title, and a list of Koyeb env variables. **Status: COMPLETED**.
+- **User (Message 228):** Asks to prepare for Koyeb deployment and provides the production MongoDB URI. **Status: COMPLETED**.
+- **User (Message 189):** Asks to remove the separate Action Items and Risks tabs. **Status: COMPLETED**.
+- **User (Message 160):** Provides the correct definition for the RAID log (Risk, Issues, Action Items, Decisions). **Status: COMPLETED**.
+- **User (Message 145):** Provides specific seed data to be used in the application. **Status: COMPLETED**.
+- **User (Message 44):** Requests a batch of new features (Weekly Updates, RAID log, Change Management). **Status: COMPLETED**.
 
 **Project Health Check:**
-- **Broken:** The core application logic related to sprints and stories is currently unverified and potentially broken. The stability of the application is unknown until testing is complete.
+- **Broken:** The application is not deployable due to a Docker build failure. This is the highest priority blocker.
+- **Mocked:** Authentication is mocked in the backend via a hardcoded default user.
 
 **3rd Party Integrations**
-- **OpenAI GPT-5.2:** Configured to use the Emergent LLM Key for future AI features.
-- **Emergent-managed Google Auth:** Integrated for user authentication.
+- **OpenAI GPT-5.2:** Configured via Emergent LLM Key, but no features are actively using it yet.
+- **Emergent-managed Google Auth:** Previously integrated, now completely disabled and removed from the application flow.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES, but the last two major changes (CRUD and Sprint/Story refactor) have not been fully tested and verified.
-- **Test files created:** None explicitly mentioned,  manages them internally.
-- **Known regressions:** None confirmed, but high potential for regressions given the recent, untested changes.
+- **Testing agent used after significant changes:** NO. Major architectural changes (auth removal) and new features have been added without a corresponding E2E test run.
+- **Test files created:** None. The agent used temporary ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 60 items
+
+backend/tests/test_api.py .FF.F..................................        [ 65%]
+backend/tests/test_api_direct.py EEEEEEEEE                               [ 80%]
+backend/tests/test_crud.py FFFFFFFFFFFF                                  [100%]
+
+==================================== ERRORS ====================================
+_____________________ ERROR at setup of test_projects_crud _____________________
+file /app/backend/tests/test_api_direct.py, line 64
+  def test_projects_crud(cookies, db):
+E       fixture 'cookies' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, anyio_backend, anyio_backend_name, anyio_backend_options, api_client, auth_headers, authenticated_client, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/app/backend/tests/test_api_direct.py:64
+______________________ ERROR at setup of test_tasks_crud _______________________
+file /app/backend/tests/test_api_direct.py, line 111
+  def test_tasks_crud(cookies, db, test_user_id):
+E       fixture 'cookies' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, anyio_backend, anyio_backend_name, anyio_backend_options, api_client, auth_headers, authenticated_client, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/app/backend/tests/test_api_direct.py:111
+_____________________ ERROR at setup of test_stories_crud ______________________
+file /app/backend/tests/test_api_direct.py, line 150
+  def test_stories_crud(cookies, db, test_user_id):
+E       fixture 'cookies' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, anyio_backend, anyio_backend_name, anyio_backend_options, api_client, auth_headers, authenticated_client, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/app/backend/tests/test_api_direct.py:150
+_____________________ ERROR at setup of test_sprints_crud ______________________
+file /app/backend/tests/test_api_direct.py, line 195
+  def test_sprints_crud(cookies, db, test_user_id):
+E       fixture 'cookies' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, anyio_backend, anyio_backend_name, anyio_backend_options, api_client, auth_headers, authenticated_client, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/app/backend/tests/test_api_direct.py:195
+____________________ ERROR at setup of test_milestones_crud ____________________
+file /app/backend/tests/test_api_direct.py, line 238
+  def test_milestones_crud(cookies, db, test_user_id):
+E       fixture 'cookies' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, anyio_backend, anyio_backend_name, anyio_backend_options, api_client, auth_headers, authenticated_client, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/app/backend/tests/test_api_direct.py:238
+______________________ ERROR at setup of test_risks_crud _______________________
+file /app/backend/tests/test_api_direct.py, line 279
+  def test_risks_crud(cookies, db, test_user_id):
+E       fixture 'cookies' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, anyio_backend, anyio_backend_name, anyio_backend_options, api_client, auth_headers, authenticated_client, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/app/backend/tests/test_api_direct.py:279
+____________________ ERROR at setup of test_resources_crud _____________________
+file /app/backend/tests/test_api_direct.py, line 321
+  def test_resources_crud(cookies, db):
+E       fixture 'cookies' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, anyio_backend, anyio_backend_name, anyio_backend_options, api_client, auth_headers, authenticated_client, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/app/backend/tests/test_api_direct.py:321
+____________________ ERROR at setup of test_dashboard_stats ____________________
+file /app/backend/tests/test_api_direct.py, line 342
+  def test_dashboard_stats(cookies):
+E       fixture 'cookies' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, anyio_backend, anyio_backend_name, anyio_backend_options, api_client, auth_headers, authenticated_client, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/app/backend/tests/test_api_direct.py:342
+________________ ERROR at setup of test_story_sprint_assignment ________________
+file /app/backend/tests/test_api_direct.py, line 361
+  def test_story_sprint_assignment(cookies, db, test_user_id):
+E       fixture 'cookies' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_scoped_runner, anyio_backend, anyio_backend_name, anyio_backend_options, api_client, auth_headers, authenticated_client, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, event_loop_policy, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/app/backend/tests/test_api_direct.py:361
+=================================== FAILURES ===================================
+________ TestRootAndAuth.test_protected_route_returns_401_without_auth _________
+
+self = <test_api.TestRootAndAuth object at 0xf82698dc9f10>
+
+    def test_protected_route_returns_401_without_auth(self):
+        """Protected routes should return 401 when unauthenticated"""
+        r = requests.get(f"{BASE_URL}/api/auth/me")
+>       assert r.status_code == 401
+E       assert 200 == 401
+E        +  where 200 = <Response [200]>.status_code
+
+backend/tests/test_api.py:25: AssertionError
+____________ TestRootAndAuth.test_projects_returns_401_without_auth ____________
+
+self = <test_api.TestRootAndAuth object at 0xf82698dc9a10>
+
+    def test_projects_returns_401_without_auth(self):
+        """GET /projects returns 401 without auth"""
+        r = requests.get(f"{BASE_URL}/api/projects")
+>       assert r.status_code == 401
+E       assert 200 == 401
+E        +  where 200 = <Response [200]>.status_code
+
+backend/tests/test_api.py:30: AssertionError
+_________ TestRootAndAuth.test_auth_me_returns_401_with_invalid_token __________
+
+self = <test_api.TestRootAndAuth object at 0xf82698dcab90>
+
+    def test_auth_me_returns_401_with_invalid_token(self):
+        """GET /auth/me returns 401 with invalid token"""
+        r = requests.get(f"{BASE_URL}/api/auth/me", headers={"Authorization": "Bearer invalid_token"})
+>       assert r.status_code == 401
+E       assert 200 == 401
+E        +  where 200 = <Response [200]>.status_code
+
+backend/tests/test_api.py:45: AssertionError
+_____________________________ test_create_project ______________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_create_project(authenticated_client):
+        """Test creating a project"""
+>       response = await authenticated_client.post("/api/projects", json={
+            "name": "Test Project",
+            "description": "Test Description",
+            "priority": "high"
+        })
+
+backend/tests/test_crud.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1859: in post
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project = ProjectCreate(name='Test Project', description='Test Description', priority='high', start_date=None, target_date=None)
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 11, 686367, tzinfo=TzInfo(0)))
+
+    @api_router.post("/projects", response_model=Dict)
+    async def create_project(project: ProjectCreate, user: User = Depends(get_current_user)):
+        """Create a new project"""
+        new_project = Project(
+            name=project.name,
+            description=project.description,
+            priority=project.priority,
+            start_date=project.start_date,
+            target_date=project.target_date,
+            created_by=user.user_id,
+            team_members=[user.user_id]
+        )
+    
+        doc = new_project.model_dump()
+        doc["created_at"] = doc["created_at"].isoformat()
+>       await db.projects.insert_one(doc)
+E       RuntimeError: Task <Task pending name='Task-2' coro=<test_create_project() running at /app/backend/tests/test_crud.py:75> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending cb=[_chain_future.<locals>._call_check_cancel() at /usr/local/lib/python3.11/asyncio/futures.py:387]> attached to a different loop
+
+backend/server.py:503: RuntimeError
+______________________________ test_get_projects _______________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_get_projects(authenticated_client):
+        """Test getting all projects"""
+>       response = await authenticated_client.get("/api/projects")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/test_crud.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1768: in get
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 11, 866188, tzinfo=TzInfo(0)))
+
+    @api_router.get("/projects", response_model=List[Dict])
+    async def get_projects(user: User = Depends(get_current_user)):
+        """Get all projects for user"""
+>       projects = await db.projects.find(
+            {"$or": [{"created_by": user.user_id}, {"team_members": user.user_id}]},
+            {"_id": 0}
+        ).to_list(100)
+E       RuntimeError: Task <Task pending name='Task-7' coro=<test_get_projects() running at /app/backend/tests/test_crud.py:90> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending> attached to a different loop
+
+backend/server.py:471: RuntimeError
+_____________________________ test_update_project ______________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_update_project(authenticated_client):
+        """Test updating a project"""
+        # Create project first
+>       create_resp = await authenticated_client.post("/api/projects", json={
+            "name": "Update Test",
+            "description": "Before update"
+        })
+
+backend/tests/test_crud.py:98: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1859: in post
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project = ProjectCreate(name='Update Test', description='Before update', priority='medium', start_date=None, target_date=None)
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 12, 35724, tzinfo=TzInfo(0)))
+
+    @api_router.post("/projects", response_model=Dict)
+    async def create_project(project: ProjectCreate, user: User = Depends(get_current_user)):
+        """Create a new project"""
+        new_project = Project(
+            name=project.name,
+            description=project.description,
+            priority=project.priority,
+            start_date=project.start_date,
+            target_date=project.target_date,
+            created_by=user.user_id,
+            team_members=[user.user_id]
+        )
+    
+        doc = new_project.model_dump()
+        doc["created_at"] = doc["created_at"].isoformat()
+>       await db.projects.insert_one(doc)
+E       RuntimeError: Task <Task pending name='Task-11' coro=<test_update_project() running at /app/backend/tests/test_crud.py:98> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending cb=[_chain_future.<locals>._call_check_cancel() at /usr/local/lib/python3.11/asyncio/futures.py:387]> attached to a different loop
+
+backend/server.py:503: RuntimeError
+_____________________________ test_delete_project ______________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_delete_project(authenticated_client):
+        """Test deleting a project"""
+        # Create project
+>       create_resp = await authenticated_client.post("/api/projects", json={
+            "name": "Delete Test",
+            "description": "Will be deleted"
+        })
+
+backend/tests/test_crud.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1859: in post
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project = ProjectCreate(name='Delete Test', description='Will be deleted', priority='medium', start_date=None, target_date=None)
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 12, 179893, tzinfo=TzInfo(0)))
+
+    @api_router.post("/projects", response_model=Dict)
+    async def create_project(project: ProjectCreate, user: User = Depends(get_current_user)):
+        """Create a new project"""
+        new_project = Project(
+            name=project.name,
+            description=project.description,
+            priority=project.priority,
+            start_date=project.start_date,
+            target_date=project.target_date,
+            created_by=user.user_id,
+            team_members=[user.user_id]
+        )
+    
+        doc = new_project.model_dump()
+        doc["created_at"] = doc["created_at"].isoformat()
+>       await db.projects.insert_one(doc)
+E       RuntimeError: Task <Task pending name='Task-16' coro=<test_delete_project() running at /app/backend/tests/test_crud.py:118> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending cb=[_chain_future.<locals>._call_check_cancel() at /usr/local/lib/python3.11/asyncio/futures.py:387]> attached to a different loop
+
+backend/server.py:503: RuntimeError
+________________________________ test_task_crud ________________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_task_crud(authenticated_client):
+        """Test task CRUD operations"""
+        # Create project first
+>       proj = await authenticated_client.post("/api/projects", json={"name": "Task Test Project", "description": "For tasks"})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/test_crud.py:139: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1859: in post
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project = ProjectCreate(name='Task Test Project', description='For tasks', priority='medium', start_date=None, target_date=None)
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 12, 335000, tzinfo=TzInfo(0)))
+
+    @api_router.post("/projects", response_model=Dict)
+    async def create_project(project: ProjectCreate, user: User = Depends(get_current_user)):
+        """Create a new project"""
+        new_project = Project(
+            name=project.name,
+            description=project.description,
+            priority=project.priority,
+            start_date=project.start_date,
+            target_date=project.target_date,
+            created_by=user.user_id,
+            team_members=[user.user_id]
+        )
+    
+        doc = new_project.model_dump()
+        doc["created_at"] = doc["created_at"].isoformat()
+>       await db.projects.insert_one(doc)
+E       RuntimeError: Task <Task pending name='Task-21' coro=<test_task_crud() running at /app/backend/tests/test_crud.py:139> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending cb=[_chain_future.<locals>._call_check_cancel() at /usr/local/lib/python3.11/asyncio/futures.py:387]> attached to a different loop
+
+backend/server.py:503: RuntimeError
+_______________________________ test_story_crud ________________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_story_crud(authenticated_client):
+        """Test story CRUD operations"""
+        # Create project
+>       proj = await authenticated_client.post("/api/projects", json={"name": "Story Test", "description": "For stories"})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/test_crud.py:175: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1859: in post
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project = ProjectCreate(name='Story Test', description='For stories', priority='medium', start_date=None, target_date=None)
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 12, 499249, tzinfo=TzInfo(0)))
+
+    @api_router.post("/projects", response_model=Dict)
+    async def create_project(project: ProjectCreate, user: User = Depends(get_current_user)):
+        """Create a new project"""
+        new_project = Project(
+            name=project.name,
+            description=project.description,
+            priority=project.priority,
+            start_date=project.start_date,
+            target_date=project.target_date,
+            created_by=user.user_id,
+            team_members=[user.user_id]
+        )
+    
+        doc = new_project.model_dump()
+        doc["created_at"] = doc["created_at"].isoformat()
+>       await db.projects.insert_one(doc)
+E       RuntimeError: Task <Task pending name='Task-26' coro=<test_story_crud() running at /app/backend/tests/test_crud.py:175> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending cb=[_chain_future.<locals>._call_check_cancel() at /usr/local/lib/python3.11/asyncio/futures.py:387]> attached to a different loop
+
+backend/server.py:503: RuntimeError
+_______________________________ test_sprint_crud _______________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_sprint_crud(authenticated_client):
+        """Test sprint CRUD operations"""
+        # Create project
+>       proj = await authenticated_client.post("/api/projects", json={"name": "Sprint Test", "description": "For sprints"})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/test_crud.py:211: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1859: in post
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project = ProjectCreate(name='Sprint Test', description='For sprints', priority='medium', start_date=None, target_date=None)
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 12, 667196, tzinfo=TzInfo(0)))
+
+    @api_router.post("/projects", response_model=Dict)
+    async def create_project(project: ProjectCreate, user: User = Depends(get_current_user)):
+        """Create a new project"""
+        new_project = Project(
+            name=project.name,
+            description=project.description,
+            priority=project.priority,
+            start_date=project.start_date,
+            target_date=project.target_date,
+            created_by=user.user_id,
+            team_members=[user.user_id]
+        )
+    
+        doc = new_project.model_dump()
+        doc["created_at"] = doc["created_at"].isoformat()
+>       await db.projects.insert_one(doc)
+E       RuntimeError: Task <Task pending name='Task-31' coro=<test_sprint_crud() running at /app/backend/tests/test_crud.py:211> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending cb=[_chain_future.<locals>._call_check_cancel() at /usr/local/lib/python3.11/asyncio/futures.py:387]> attached to a different loop
+
+backend/server.py:503: RuntimeError
+_____________________________ test_milestone_crud ______________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_milestone_crud(authenticated_client):
+        """Test milestone CRUD operations"""
+        # Create project
+>       proj = await authenticated_client.post("/api/projects", json={"name": "Milestone Test", "description": "For milestones"})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/test_crud.py:245: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1859: in post
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project = ProjectCreate(name='Milestone Test', description='For milestones', priority='medium', start_date=None, target_date=None)
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 12, 843702, tzinfo=TzInfo(0)))
+
+    @api_router.post("/projects", response_model=Dict)
+    async def create_project(project: ProjectCreate, user: User = Depends(get_current_user)):
+        """Create a new project"""
+        new_project = Project(
+            name=project.name,
+            description=project.description,
+            priority=project.priority,
+            start_date=project.start_date,
+            target_date=project.target_date,
+            created_by=user.user_id,
+            team_members=[user.user_id]
+        )
+    
+        doc = new_project.model_dump()
+        doc["created_at"] = doc["created_at"].isoformat()
+>       await db.projects.insert_one(doc)
+E       RuntimeError: Task <Task pending name='Task-36' coro=<test_milestone_crud() running at /app/backend/tests/test_crud.py:245> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending cb=[_chain_future.<locals>._call_check_cancel() at /usr/local/lib/python3.11/asyncio/futures.py:387]> attached to a different loop
+
+backend/server.py:503: RuntimeError
+________________________________ test_risk_crud ________________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_risk_crud(authenticated_client):
+        """Test risk CRUD operations"""
+        # Create project
+>       proj = await authenticated_client.post("/api/projects", json={"name": "Risk Test", "description": "For risks"})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/test_crud.py:278: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1859: in post
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project = ProjectCreate(name='Risk Test', description='For risks', priority='medium', start_date=None, target_date=None)
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 12, 981708, tzinfo=TzInfo(0)))
+
+    @api_router.post("/projects", response_model=Dict)
+    async def create_project(project: ProjectCreate, user: User = Depends(get_current_user)):
+        """Create a new project"""
+        new_project = Project(
+            name=project.name,
+            description=project.description,
+            priority=project.priority,
+            start_date=project.start_date,
+            target_date=project.target_date,
+            created_by=user.user_id,
+            team_members=[user.user_id]
+        )
+    
+        doc = new_project.model_dump()
+        doc["created_at"] = doc["created_at"].isoformat()
+>       await db.projects.insert_one(doc)
+E       RuntimeError: Task <Task pending name='Task-41' coro=<test_risk_crud() running at /app/backend/tests/test_crud.py:278> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending cb=[_chain_future.<locals>._call_check_cancel() at /usr/local/lib/python3.11/asyncio/futures.py:387]> attached to a different loop
+
+backend/server.py:503: RuntimeError
+______________________________ test_resource_crud ______________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_resource_crud(authenticated_client):
+        """Test resource CRUD operations"""
+        # Create resource
+>       res_resp = await authenticated_client.post("/api/resources", json={
+            "name": "Test Engineer",
+            "email": f"engineer_{uuid.uuid4().hex[:6]}@compassx.com",
+            "role": "Developer",
+            "skills": ["Python", "React"]
+        })
+
+backend/tests/test_crud.py:312: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1859: in post
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+resource = ResourceCreate(name='Test Engineer', email='engineer_957bfc@compassx.com', role='Developer', skills=['Python', 'React'], availability=100)
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 13, 139253, tzinfo=TzInfo(0)))
+
+    @api_router.post("/resources", response_model=Dict)
+    async def create_resource(resource: ResourceCreate, user: User = Depends(get_current_user)):
+        """Create a resource"""
+        new_resource = Resource(
+            name=resource.name,
+            email=resource.email,
+            role=resource.role,
+            skills=resource.skills,
+            availability=resource.availability
+        )
+    
+        doc = new_resource.model_dump()
+        doc["created_at"] = doc["created_at"].isoformat()
+>       await db.resources.insert_one(doc)
+E       RuntimeError: Task <Task pending name='Task-46' coro=<test_resource_crud() running at /app/backend/tests/test_crud.py:312> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending cb=[_chain_future.<locals>._call_check_cancel() at /usr/local/lib/python3.11/asyncio/futures.py:387]> attached to a different loop
+
+backend/server.py:655: RuntimeError
+_____________________________ test_dashboard_stats _____________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_dashboard_stats(authenticated_client):
+        """Test dashboard stats endpoint"""
+>       response = await authenticated_client.get("/api/dashboard/stats")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/test_crud.py:333: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1768: in get
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 13, 393405, tzinfo=TzInfo(0)))
+
+    @api_router.get("/dashboard/stats")
+    async def get_dashboard_stats(user: User = Depends(get_current_user)):
+        """Get dashboard statistics"""
+        # Projects
+>       projects = await db.projects.find(
+            {"$or": [{"created_by": user.user_id}, {"team_members": user.user_id}]},
+            {"_id": 0}
+        ).to_list(100)
+E       RuntimeError: Task <Task pending name='Task-51' coro=<test_dashboard_stats() running at /app/backend/tests/test_crud.py:333> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending> attached to a different loop
+
+backend/server.py:1180: RuntimeError
+_________________________ test_story_sprint_assignment _________________________
+
+authenticated_client = <httpx.AsyncClient object at 0xf82696f6e790>
+
+    async def test_story_sprint_assignment(authenticated_client):
+        """Test assigning stories to sprints"""
+        # Create project
+>       proj = await authenticated_client.post("/api/projects", json={"name": "Assignment Test", "description": "Test"})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend/tests/test_crud.py:347: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1859: in post
+    return await self.request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1540: in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1629: in send
+    response = await self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1657: in _send_handling_auth
+    response = await self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1694: in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1730: in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_transports/asgi.py:170: in handle_async_request
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project = ProjectCreate(name='Assignment Test', description='Test', priority='medium', start_date=None, target_date=None)
+user = User(user_id='default_user', email='guest@compassx.com', name='Guest User', picture=None, created_at=datetime.datetime(2026, 3, 10, 22, 7, 13, 706130, tzinfo=TzInfo(0)))
+
+    @api_router.post("/projects", response_model=Dict)
+    async def create_project(project: ProjectCreate, user: User = Depends(get_current_user)):
+        """Create a new project"""
+        new_project = Project(
+            name=project.name,
+            description=project.description,
+            priority=project.priority,
+            start_date=project.start_date,
+            target_date=project.target_date,
+            created_by=user.user_id,
+            team_members=[user.user_id]
+        )
+    
+        doc = new_project.model_dump()
+        doc["created_at"] = doc["created_at"].isoformat()
+>       await db.projects.insert_one(doc)
+E       RuntimeError: Task <Task pending name='Task-55' coro=<test_story_sprint_assignment() running at /app/backend/tests/test_crud.py:347> cb=[_run_until_complete_cb() at /usr/local/lib/python3.11/asyncio/base_events.py:181]> got Future <Future pending cb=[_chain_future.<locals>._call_check_cancel() at /usr/local/lib/python3.11/asyncio/futures.py:387]> attached to a different loop
+
+backend/server.py:503: RuntimeError
+=============================== warnings summary ===============================
+../root/.venv/lib/python3.11/site-packages/starlette/formparsers.py:12
+  /root/.venv/lib/python3.11/site-packages/starlette/formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+backend/server.py:1857
+  /app/backend/server.py:1857: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+
+../root/.venv/lib/python3.11/site-packages/fastapi/applications.py:4495
+  /root/.venv/lib/python3.11/site-packages/fastapi/applications.py:4495: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_api.py::TestRootAndAuth::test_protected_route_returns_401_without_auth
+FAILED backend/tests/test_api.py::TestRootAndAuth::test_projects_returns_401_without_auth
+FAILED backend/tests/test_api.py::TestRootAndAuth::test_auth_me_returns_401_with_invalid_token
+FAILED backend/tests/test_crud.py::test_create_project - RuntimeError: Task <...
+FAILED backend/tests/test_crud.py::test_get_projects - RuntimeError: Task <Ta...
+FAILED backend/tests/test_crud.py::test_update_project - RuntimeError: Task <...
+FAILED backend/tests/test_crud.py::test_delete_project - RuntimeError: Task <...
+FAILED backend/tests/test_crud.py::test_task_crud - RuntimeError: Task <Task ...
+FAILED backend/tests/test_crud.py::test_story_crud - RuntimeError: Task <Task...
+FAILED backend/tests/test_crud.py::test_sprint_crud - RuntimeError: Task <Tas...
+FAILED backend/tests/test_crud.py::test_milestone_crud - RuntimeError: Task <...
+FAILED backend/tests/test_crud.py::test_risk_crud - RuntimeError: Task <Task ...
+FAILED backend/tests/test_crud.py::test_resource_crud - RuntimeError: Task <T...
+FAILED backend/tests/test_crud.py::test_dashboard_stats - RuntimeError: Task ...
+FAILED backend/tests/test_crud.py::test_story_sprint_assignment - RuntimeErro...
+ERROR backend/tests/test_api_direct.py::test_projects_crud
+ERROR backend/tests/test_api_direct.py::test_tasks_crud
+ERROR backend/tests/test_api_direct.py::test_stories_crud
+ERROR backend/tests/test_api_direct.py::test_sprints_crud
+ERROR backend/tests/test_api_direct.py::test_milestones_crud
+ERROR backend/tests/test_api_direct.py::test_risks_crud
+ERROR backend/tests/test_api_direct.py::test_resources_crud
+ERROR backend/tests/test_api_direct.py::test_dashboard_stats
+ERROR backend/tests/test_api_direct.py::test_story_sprint_assignment
+============= 15 failed, 36 passed, 3 warnings, 9 errors in 23.89s ============= files but did not commit them.
+- **Known regressions:** High potential for regressions due to the removal of authentication and large-scale changes.
 
 **Credentials to test flow:**
-- User authentication is handled via the Emergent-managed Google Social Login. No specific credentials are required from the user, but the test flow will involve the Google login process.</analysis>
+- No credentials are required. The authentication system has been removed.
+
+**What agent forgot to execute**
+- The agent did not perform a comprehensive end-to-end test after making substantial changes, including removing the entire authentication layer. This poses a significant risk of hidden bugs.
+- The agent has not addressed the growing complexity of the  and  files, which were noted as needing refactoring in the initial handoff summary.</analysis>
