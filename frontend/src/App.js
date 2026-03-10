@@ -16,7 +16,8 @@ import AllProjects from './pages/AllProjects';
 import ProgramView from './pages/ProgramView';
 import ChangeManagementDashboard from './pages/ChangeManagementDashboard';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// Use relative URL in production, env var in development
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
 
 // Theme Context

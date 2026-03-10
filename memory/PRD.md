@@ -1,68 +1,56 @@
 # CompassX - AI Project Intelligence Platform
 
-## Team Members
-- **Paddy** - Program Director
-- **Seth** - Technical Lead
-- **Brian** - Senior Developer
-- **Ashley** - Product Manager
-- **Fifi** - Business Analyst
-- **Charlene** - Change Manager
-- **Sandeep** - QA Lead
+## Deployment Ready
 
-## Projects
-| Project | Owner | Target Date | Priority |
-|---------|-------|-------------|----------|
-| BOM Grid v1.0 | Fifi | 2025-03-31 | High |
-| Digital Intake Co-Pilot | Ashley | 2025-04-15 | High |
-| CPQ Reimagined | Seth | 2025-02-28 | Critical |
-| Code Red Tracker | Seth | 2025-03-15 | High |
-| Change Management Transformation | Charlene | 2025-04-30 | High |
+### Files Created for Koyeb Deployment
+- `Dockerfile` - Multi-stage build (Node + Python)
+- `.dockerignore` - Excludes unnecessary files
+- `DEPLOYMENT.md` - Complete deployment guide
+- `.env.production.example` - Environment variable template
 
-## Project Detail Tabs
-1. **Overview** - Project details + Weekly Updates (week-over-week tracking)
-2. **Milestones** - Key project milestones with health status
-3. **Stories** - User stories with sprint assignments
-4. **RAID Log** - Risks, Issues, Action Items, Decisions (table format)
-5. **Changes** - Change requests with approval workflow
+### MongoDB Production
+```
+Connection: mongodb+srv://sethcushing:compassx@compassxprograminsight.htuibk0.mongodb.net/?appName=CompassXProgramInsight
+Database: compassx_prod
+```
 
-## RAID Log (Risks, Issues, Action Items, Decisions)
+### Koyeb Environment Variables
+| Variable | Value |
+|----------|-------|
+| MONGO_URL | mongodb+srv://sethcushing:compassx@compassxprograminsight.htuibk0.mongodb.net/?appName=CompassXProgramInsight |
+| DB_NAME | compassx_prod |
+| GOOGLE_CLIENT_ID | (from Google Console) |
+| GOOGLE_CLIENT_SECRET | (from Google Console) |
+| APP_URL | https://your-app.koyeb.app |
 
-### Type Definitions
-- **R - Risks**: Potential future problems that may impact the project
-- **I - Issues**: Current problems that are actively being resolved
-- **A - Action Items**: Tasks that need to be completed by specific owners
-- **D - Decisions**: Key decisions made by the team that affect the project
+### Architecture
+```
+Koyeb Container (Port 8000)
+├── Nginx (static files + reverse proxy)
+│   ├── / → React frontend
+│   └── /api/* → FastAPI backend
+└── FastAPI (Port 8001)
+    └── MongoDB Atlas
+```
 
-### Table Columns
-| Type | Title | Owner | Priority | Due Date | Status | Actions |
+---
 
-### Priority Levels
-- Low, Medium, High, Critical
+## Team & Projects
 
-### Status Options
-- Open, Closed (clickable toggle)
+### Team Members
+- Paddy, Seth, Brian, Ashley, Fifi, Charlene, Sandeep
 
-## Seed Data Per Project
-- 6 Production release milestones
-- 10 Stories
-- 14 RAID items (3 Risks, 3 Issues, 4 Action Items, 4 Decisions)
-- 3 Weekly updates
-- 2 Change requests
+### Projects
+- BOM Grid v1.0 (Fifi)
+- Digital Intake Co-Pilot (Ashley)
+- CPQ Reimagined (Seth)
+- Code Red Tracker (Seth)
+- Change Management Transformation (Charlene)
 
-## API Endpoints
-- `/api/raid-items` - CRUD for RAID items (type: risk, issue, action_item, decision)
-- `/api/weekly-updates` - Weekly Updates CRUD
-- `/api/change-requests` - Change Management CRUD
-- `/api/seed-demo-data` - Seeds all demo data
-
-## Frontend Routes
-- `/` - Landing
-- `/dashboard` - Dashboard
-- `/projects` - All Projects
-- `/project/:id` - Project Detail (5 tabs: Overview, Milestones, Stories, RAID Log, Changes)
-- `/sprint` - Sprint Board
-- `/resources` - Team
-- `/program` - Program View
-- `/changes` - Change Management Dashboard
-- `/copilot` - AI Copilot
-- `/create` - AI Project Creator
+## Features
+- Project Management with Milestones, Stories
+- RAID Log (Risks, Issues, Action Items, Decisions)
+- Weekly Updates tracking
+- Change Management with approval workflow
+- Sprint Board (Kanban)
+- AI Copilot
