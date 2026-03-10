@@ -18,51 +18,33 @@
 | Code Red Tracker | Seth | 2025-03-15 | High |
 | Change Management Transformation | Charlene | 2025-04-30 | High |
 
+## Project Detail Tabs
+1. **Overview** - Project details + Weekly Updates (week-over-week tracking)
+2. **Milestones** - Key project milestones with health status
+3. **Stories** - User stories with sprint assignments
+4. **RAID Log** - Risks, Issues, Action Items, Decisions (table format)
+5. **Changes** - Change requests with approval workflow
+
 ## RAID Log (Risks, Issues, Action Items, Decisions)
 
 ### Type Definitions
 - **R - Risks**: Potential future problems that may impact the project
-- **A - Action Items**: Tasks that need to be completed by specific owners
 - **I - Issues**: Current problems that are actively being resolved
+- **A - Action Items**: Tasks that need to be completed by specific owners
 - **D - Decisions**: Key decisions made by the team that affect the project
 
-### Display Format
-RAID items are displayed in a table format with columns:
+### Table Columns
 | Type | Title | Owner | Priority | Due Date | Status | Actions |
 
 ### Priority Levels
 - Low, Medium, High, Critical
 
 ### Status Options
-- Open, Closed
-
-## Features Implemented
-
-### Core Features
-- Google OAuth login
-- Dashboard with project stats
-- AI Project Creator
-- Sprint Planner with Kanban board
-- Resource Manager
-- All Projects page
-- Program View
-- Change Management Dashboard
-- Light/Dark mode
-
-### Project Detail Tabs
-- Overview (with Weekly Updates)
-- Action Items (renamed from Tasks)
-- Milestones
-- Stories
-- RAID Log (table format)
-- Changes
-- Risks
+- Open, Closed (clickable toggle)
 
 ## Seed Data Per Project
 - 6 Production release milestones
 - 10 Stories
-- 8 Action Items
-- 4 Risks with mitigations
 - 14 RAID items (3 Risks, 3 Issues, 4 Action Items, 4 Decisions)
 - 3 Weekly updates
 - 2 Change requests
@@ -72,3 +54,15 @@ RAID items are displayed in a table format with columns:
 - `/api/weekly-updates` - Weekly Updates CRUD
 - `/api/change-requests` - Change Management CRUD
 - `/api/seed-demo-data` - Seeds all demo data
+
+## Frontend Routes
+- `/` - Landing
+- `/dashboard` - Dashboard
+- `/projects` - All Projects
+- `/project/:id` - Project Detail (5 tabs: Overview, Milestones, Stories, RAID Log, Changes)
+- `/sprint` - Sprint Board
+- `/resources` - Team
+- `/program` - Program View
+- `/changes` - Change Management Dashboard
+- `/copilot` - AI Copilot
+- `/create` - AI Project Creator

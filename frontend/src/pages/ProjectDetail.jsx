@@ -1253,7 +1253,7 @@ const ProjectDetail = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="glass-card p-5">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
@@ -1265,18 +1265,6 @@ const ProjectDetail = () => {
               </div>
             </div>
             <Progress value={progress} className="h-2" />
-          </div>
-
-          <div className="glass-card p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                <ListTodo className="w-5 h-5 text-emerald-500" strokeWidth={1.5} />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-slate-900 dark:text-white">{tasksDone}/{totalTasks}</div>
-                <div className="text-sm text-slate-500">Action Items</div>
-              </div>
-            </div>
           </div>
 
           <div className="glass-card p-5">
@@ -1305,12 +1293,12 @@ const ProjectDetail = () => {
 
           <div className="glass-card p-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
-                <ShieldAlert className="w-5 h-5 text-red-500" strokeWidth={1.5} />
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-emerald-500" strokeWidth={1.5} />
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-900 dark:text-white">{project.risks?.length || 0}</div>
-                <div className="text-sm text-slate-500">Risks</div>
+                <div className="text-2xl font-bold text-slate-900 dark:text-white">RAID</div>
+                <div className="text-sm text-slate-500">Log</div>
               </div>
             </div>
           </div>
@@ -1320,12 +1308,10 @@ const ProjectDetail = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="glass-card p-1 h-auto inline-flex gap-1 flex-wrap">
             <TabsTrigger value="overview" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Overview</TabsTrigger>
-            <TabsTrigger value="tasks" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Action Items ({totalTasks})</TabsTrigger>
             <TabsTrigger value="milestones" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Milestones ({project.milestones?.length || 0})</TabsTrigger>
             <TabsTrigger value="stories" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Stories ({project.stories?.length || 0})</TabsTrigger>
             <TabsTrigger value="raid" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">RAID Log</TabsTrigger>
             <TabsTrigger value="changes" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Changes</TabsTrigger>
-            <TabsTrigger value="risks" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Risks ({project.risks?.length || 0})</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -1375,113 +1361,6 @@ const ProjectDetail = () => {
 
             {/* Weekly Updates Section */}
             <WeeklyUpdatesSection projectId={projectId} />
-          </TabsContent>
-
-          {/* Action Items Tab */}
-          <TabsContent value="tasks" className="space-y-4">
-            <div className="flex justify-end">
-              <Dialog open={isAddTaskOpen} onOpenChange={setIsAddTaskOpen}>
-                <DialogTrigger asChild>
-                  <Button className="rounded-full bg-blue-600 text-white hover:bg-blue-700" data-testid="add-task-button">
-                    <Plus className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                    Add Action Item
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Add New Action Item</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 mt-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Title *</label>
-                      <Input value={newTask.title} onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))} placeholder="Action item title" className="rounded-xl" data-testid="new-task-title" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Description</label>
-                      <Textarea value={newTask.description} onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))} placeholder="Action item description" className="rounded-xl" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Priority</label>
-                        <Select value={newTask.priority} onValueChange={(value) => setNewTask(prev => ({ ...prev, priority: value }))}>
-                          <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="low">Low</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="critical">Critical</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Estimated Hours</label>
-                        <Input type="number" value={newTask.estimated_hours} onChange={(e) => setNewTask(prev => ({ ...prev, estimated_hours: parseInt(e.target.value) || 0 }))} className="rounded-xl" />
-                      </div>
-                    </div>
-                    <Button onClick={handleAddTask} className="w-full rounded-full bg-blue-600">Add Action Item</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {project.tasks?.length === 0 ? (
-              <div className="glass-card p-12 text-center">
-                <ListTodo className="w-12 h-12 text-slate-300 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="text-slate-500">No action items yet. Add your first action item!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {project.tasks?.map((task) => (
-                  <div key={task.task_id} className="glass-card p-4 hover:shadow-lg transition-all" data-testid={`task-${task.task_id}`}>
-                    <div className="flex items-center gap-4">
-                      <button onClick={() => handleUpdateTaskStatus(task.task_id, task.status === 'done' ? 'todo' : 'done')} className="flex-shrink-0">
-                        {getStatusIcon(task.status)}
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <div className={`font-medium ${task.status === 'done' ? 'line-through text-slate-400' : 'text-slate-900 dark:text-white'}`}>{task.title}</div>
-                        {task.description && <div className="text-sm text-slate-500 truncate">{task.description}</div>}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {getPriorityBadge(task.priority)}
-                        <div className="flex items-center gap-1 text-sm text-slate-500">
-                          <Clock className="w-4 h-4" strokeWidth={1.5} />
-                          {task.estimated_hours}h
-                        </div>
-                        <Select value={task.status} onValueChange={(value) => handleUpdateTaskStatus(task.task_id, value)}>
-                          <SelectTrigger className="w-32 h-8 text-xs rounded-lg"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="todo">To Do</SelectItem>
-                            <SelectItem value="in_progress">In Progress</SelectItem>
-                            <SelectItem value="in_review">In Review</SelectItem>
-                            <SelectItem value="done">Done</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button variant="ghost" size="sm" onClick={() => { setEditingTask({...task}); setIsEditTaskOpen(true); }}>
-                          <Edit2 className="w-4 h-4" strokeWidth={1.5} />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600">
-                              <Trash2 className="w-4 h-4" strokeWidth={1.5} />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Task?</AlertDialogTitle>
-                              <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteTask(task.task_id)} className="bg-red-500">Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </TabsContent>
 
           {/* Milestones Tab */}
@@ -1714,123 +1593,6 @@ const ProjectDetail = () => {
                     )}
                   </div>
                 ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Risks Tab */}
-          <TabsContent value="risks" className="space-y-4">
-            <div className="flex justify-end">
-              <Dialog open={isAddRiskOpen} onOpenChange={setIsAddRiskOpen}>
-                <DialogTrigger asChild>
-                  <Button className="rounded-full bg-blue-600 text-white hover:bg-blue-700" data-testid="add-risk-button">
-                    <Plus className="w-4 h-4 mr-2" strokeWidth={1.5} />
-                    Add Risk
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Add New Risk</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 mt-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Description *</label>
-                      <Textarea value={newRisk.description} onChange={(e) => setNewRisk(prev => ({ ...prev, description: e.target.value }))} placeholder="Describe the risk" className="rounded-xl" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Mitigation Plan</label>
-                      <Textarea value={newRisk.mitigation} onChange={(e) => setNewRisk(prev => ({ ...prev, mitigation: e.target.value }))} placeholder="How to mitigate this risk" className="rounded-xl" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Probability</label>
-                        <Select value={newRisk.probability} onValueChange={(value) => setNewRisk(prev => ({ ...prev, probability: value }))}>
-                          <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="low">Low</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Impact</label>
-                        <Select value={newRisk.impact} onValueChange={(value) => setNewRisk(prev => ({ ...prev, impact: value }))}>
-                          <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="low">Low</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <Button onClick={handleAddRisk} className="w-full rounded-full bg-blue-600">Add Risk</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {project.risks?.length === 0 ? (
-              <div className="glass-card p-12 text-center">
-                <ShieldAlert className="w-12 h-12 text-slate-300 mx-auto mb-4" strokeWidth={1.5} />
-                <p className="text-slate-500">No risks identified. Add risks to track potential issues!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {project.risks?.map((risk) => {
-                  const riskLevel = getRiskLevel(risk.probability, risk.impact);
-                  return (
-                    <div key={risk.risk_id} className="glass-card p-5" data-testid={`risk-${risk.risk_id}`}>
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <AlertTriangle className={`w-5 h-5 ${
-                            riskLevel.label === 'Critical' ? 'text-red-500' :
-                            riskLevel.label === 'High' ? 'text-amber-500' :
-                            riskLevel.label === 'Medium' ? 'text-blue-500' : 'text-slate-500'
-                          }`} strokeWidth={1.5} />
-                          <Badge className={riskLevel.color}>{riskLevel.label} Risk</Badge>
-                          <Badge className={risk.status === 'open' ? 'bg-red-500/20 text-red-600' : risk.status === 'mitigated' ? 'bg-amber-500/20 text-amber-600' : 'bg-emerald-500/20 text-emerald-600'}>
-                            {risk.status}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => { setEditingRisk({...risk}); setIsEditRiskOpen(true); }}>
-                            <Edit2 className="w-4 h-4" strokeWidth={1.5} />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600">
-                                <Trash2 className="w-4 h-4" strokeWidth={1.5} />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Risk?</AlertDialogTitle>
-                                <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteRisk(risk.risk_id)} className="bg-red-500">Delete</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </div>
-                      <p className="text-slate-900 dark:text-white font-medium mb-2">{risk.description}</p>
-                      {risk.mitigation && (
-                        <div className="bg-slate-50 dark:bg-white/5 rounded-lg p-3 mt-3">
-                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Mitigation Plan</div>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">{risk.mitigation}</p>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-4 mt-3 text-xs text-slate-400">
-                        <span>Probability: {risk.probability}</span>
-                        <span>Impact: {risk.impact}</span>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             )}
           </TabsContent>
