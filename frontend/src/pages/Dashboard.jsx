@@ -26,11 +26,11 @@ export const Sidebar = ({ currentPage }) => {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', id: 'dashboard' },
     { icon: Briefcase, label: 'All Projects', href: '/projects', id: 'projects' },
-    { icon: Sparkles, label: 'AI Creator', href: '/create', id: 'create' },
     { icon: FolderKanban, label: 'Sprint Board', href: '/sprint', id: 'sprint' },
     { icon: Users, label: 'Resources', href: '/resources', id: 'resources' },
     { icon: Target, label: 'Program View', href: '/program', id: 'program' },
     { icon: FileCheck, label: 'Change Mgmt', href: '/changes', id: 'changes' },
+    { icon: Sparkles, label: 'AI Creator', href: '/create', id: 'create' },
     { icon: MessageSquare, label: 'AI Copilot', href: '/copilot', id: 'copilot' },
   ];
 
