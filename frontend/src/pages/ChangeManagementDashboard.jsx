@@ -13,8 +13,29 @@ import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import {
   FileCheck, Plus, Clock, CheckCircle2, XSquare, Rocket, FileText,
-  ThumbsUp, ThumbsDown, Trash2, AlertTriangle, TrendingUp, Filter
+  ThumbsUp, ThumbsDown, Trash2, AlertTriangle, Filter
 } from 'lucide-react';
+
+const statusStyles = {
+  draft: { label: 'Draft', icon: FileText, bg: 'bg-slate-500/10', text: 'text-slate-500', badge: 'bg-slate-500/20 text-slate-600' },
+  pending_review: { label: 'Pending Review', icon: Clock, bg: 'bg-amber-500/10', text: 'text-amber-500', badge: 'bg-amber-500/20 text-amber-600' },
+  approved: { label: 'Approved', icon: CheckCircle2, bg: 'bg-emerald-500/10', text: 'text-emerald-500', badge: 'bg-emerald-500/20 text-emerald-600' },
+  rejected: { label: 'Rejected', icon: XSquare, bg: 'bg-red-500/10', text: 'text-red-500', badge: 'bg-red-500/20 text-red-600' },
+  implemented: { label: 'Implemented', icon: Rocket, bg: 'bg-blue-500/10', text: 'text-blue-500', badge: 'bg-blue-500/20 text-blue-600' }
+};
+
+const impactColors = {
+  low: 'bg-slate-500/20 text-slate-600',
+  medium: 'bg-amber-500/20 text-amber-600',
+  high: 'bg-orange-500/20 text-orange-600',
+  critical: 'bg-red-500/20 text-red-600'
+};
+
+const riskColors = {
+  low: 'bg-slate-500/20 text-slate-600',
+  medium: 'bg-amber-500/20 text-amber-600',
+  high: 'bg-red-500/20 text-red-600'
+};
 
 const ChangeManagementDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -88,46 +109,38 @@ const ChangeManagementDashboard = () => {
     }
   };
 
-  const statusConfig = {
-    draft: { label: 'Draft', color: 'slate', icon: FileText },
-    pending_review: { label: 'Pending Review', color: 'amber', icon: Clock },
-    approved: { label: 'Approved', color: 'emerald', icon: CheckCircle2 },
-    rejected: { label: 'Rejected', color: 'red', icon: XSquare },
-    implemented: { label: 'Implemented', color: 'blue', icon: Rocket }
-  };
-
-  const impactColors = {
-    low: 'bg-slate-500/20 text-slate-600',
-    medium: 'bg-amber-500/20 text-amber-600',
-    high: 'bg-orange-500/20 text-orange-600',
-    critical: 'bg-red-500/20 text-red-600'
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/20 dark:from-slate-950 dark:via-blue-950/20 dark:to-slate-950 flex items-center justify-center">
-        <div className="glass-card p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
-          <p className="mt-4 text-slate-500">Loading change management dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] flex">
+        <Sidebar currentPage="changes" />
+        <main className="flex-1 ml-20 lg:ml-64 p-6 lg:p-8 flex items-center justify-center">
+          <div className="glass-card p-8 text-center">
+            <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-slate-600 dark:text-slate-400">Loading change management...</p>
+          </div>
+        </main>
       </div>
     );
   }
 
-  const filteredRequests = dashboardData?.recent_requests?.filter(r => 
+  const filteredRequests = dashboardData?.recent_requests?.filter(r =>
     filterStatus === 'all' || r.status === filterStatus
   ) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/20 dark:from-slate-950 dark:via-blue-950/20 dark:to-slate-950 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19]">
       <Sidebar currentPage="changes" />
-      
-      <main className="flex-1 p-6 lg:p-8 overflow-auto" data-testid="change-management-dashboard">
+
+      <main className="ml-20 lg:ml-64 p-6 lg:p-8" data-testid="change-management-dashboard">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Change Management</h1>
-            <p className="text-slate-500 mt-1">Track and approve releases across all projects</p>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Change Management
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
+              Track and approve releases across all projects
+            </p>
           </div>
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
@@ -209,18 +222,7 @@ const ChangeManagementDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <div className="glass-card p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <FileCheck className="w-5 h-5 text-blue-500" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-slate-900 dark:text-white">{dashboardData?.total_requests || 0}</div>
-                <div className="text-sm text-slate-500">Total Requests</div>
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="glass-card p-5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
@@ -270,26 +272,26 @@ const ChangeManagementDashboard = () => {
         {/* Pending Approval Section */}
         {dashboardData?.pending_approval?.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-amber-500" /> Awaiting Your Review
+            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">
+              AWAITING YOUR REVIEW
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {dashboardData.pending_approval.map((change) => (
-                <div key={change.change_id} className="glass-card p-5 border-l-4 border-amber-500">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h4 className="font-semibold text-slate-900 dark:text-white">{change.title}</h4>
-                      <p className="text-sm text-slate-500">{change.project_name}</p>
+                <div key={change.change_id} className="glass-card p-5 border-l-4 border-amber-500" data-testid={`pending-card-${change.change_id}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1 min-w-0 mr-2">
+                      <h4 className="font-semibold text-slate-900 dark:text-white text-sm truncate">{change.title}</h4>
+                      <p className="text-xs text-slate-500">{change.project_name}</p>
                     </div>
                     <Badge className={impactColors[change.impact]}>{change.impact}</Badge>
                   </div>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">{change.description}</p>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'approved')} className="rounded-full bg-emerald-500 text-white flex-1">
-                      <ThumbsUp className="w-4 h-4 mr-1" /> Approve
+                    <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'approved')} className="rounded-full bg-emerald-500 text-white flex-1" data-testid={`approve-btn-${change.change_id}`}>
+                      <ThumbsUp className="w-3.5 h-3.5 mr-1" /> Approve
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(change.change_id, 'rejected')} className="rounded-full text-red-500 border-red-500 flex-1">
-                      <ThumbsDown className="w-4 h-4 mr-1" /> Reject
+                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(change.change_id, 'rejected')} className="rounded-full text-red-500 border-red-500 flex-1" data-testid={`reject-btn-${change.change_id}`}>
+                      <ThumbsDown className="w-3.5 h-3.5 mr-1" /> Reject
                     </Button>
                   </div>
                 </div>
@@ -301,11 +303,11 @@ const ChangeManagementDashboard = () => {
         {/* All Requests */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">All Change Requests</h2>
+            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">ALL CHANGE REQUESTS</h2>
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-slate-500" />
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-40 rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-40 rounded-xl" data-testid="status-filter"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="draft">Draft</SelectItem>
@@ -324,82 +326,87 @@ const ChangeManagementDashboard = () => {
               <p className="text-slate-500">No change requests found.</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {filteredRequests.map((change) => {
-                const cfg = statusConfig[change.status] || statusConfig.draft;
-                const StatusIcon = cfg.icon;
-                return (
-                  <div key={change.change_id} className="glass-card p-5 hover:shadow-md transition-all">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 rounded-xl bg-${cfg.color}-500/10 flex items-center justify-center flex-shrink-0`}>
-                          <StatusIcon className={`w-5 h-5 text-${cfg.color}-500`} />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-semibold text-slate-900 dark:text-white">{change.title}</h4>
-                            <Link to={`/project/${change.project_id}`} className="text-xs text-blue-500 hover:underline">
+            <div className="glass-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5">
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Title</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Project</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Impact</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Risk</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-white/10">
+                    {filteredRequests.map((change) => {
+                      const cfg = statusStyles[change.status] || statusStyles.draft;
+                      return (
+                        <tr key={change.change_id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors" data-testid={`change-row-${change.change_id}`}>
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-slate-900 dark:text-white text-sm">{change.title}</div>
+                            {change.description && <div className="text-xs text-slate-500 truncate max-w-sm">{change.description}</div>}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Link to={`/project/${change.project_id}`} className="text-sm text-blue-500 hover:underline">
                               {change.project_name}
                             </Link>
-                          </div>
-                          <p className="text-sm text-slate-500">{change.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={`bg-${cfg.color}-500/20 text-${cfg.color}-600`}>{cfg.label}</Badge>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Change Request?</AlertDialogTitle>
-                              <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(change.change_id)} className="bg-red-500">Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap items-center gap-3 mb-3 text-sm">
-                      <Badge className={impactColors[change.impact]}>Impact: {change.impact}</Badge>
-                      <Badge className={change.risk_level === 'high' ? 'bg-red-500/20 text-red-600' : change.risk_level === 'medium' ? 'bg-amber-500/20 text-amber-600' : 'bg-slate-500/20 text-slate-600'}>
-                        Risk: {change.risk_level}
-                      </Badge>
-                      <span className="text-slate-500">Type: {change.change_type}</span>
-                      {change.target_date && <span className="text-slate-500">Target: {new Date(change.target_date).toLocaleDateString()}</span>}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-2 border-t border-slate-200 dark:border-white/10 pt-3">
-                      {change.status === 'draft' && (
-                        <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'pending_review')} className="rounded-full bg-amber-500 text-white">
-                          Submit for Review
-                        </Button>
-                      )}
-                      {change.status === 'pending_review' && (
-                        <>
-                          <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'approved')} className="rounded-full bg-emerald-500 text-white">
-                            <ThumbsUp className="w-4 h-4 mr-1" /> Approve
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleStatusChange(change.change_id, 'rejected')} className="rounded-full text-red-500 border-red-500">
-                            <ThumbsDown className="w-4 h-4 mr-1" /> Reject
-                          </Button>
-                        </>
-                      )}
-                      {change.status === 'approved' && (
-                        <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'implemented')} className="rounded-full bg-blue-500 text-white">
-                          <Rocket className="w-4 h-4 mr-1" /> Mark Implemented
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge className={impactColors[change.impact]}>{change.impact}</Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge className={riskColors[change.risk_level] || riskColors.medium}>{change.risk_level}</Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge className={cfg.badge}>{cfg.label}</Badge>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              {change.status === 'draft' && (
+                                <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'pending_review')} className="rounded-full bg-amber-500 text-white text-xs h-7 px-3">
+                                  Submit
+                                </Button>
+                              )}
+                              {change.status === 'pending_review' && (
+                                <>
+                                  <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'approved')} className="rounded-full bg-emerald-500 text-white text-xs h-7 px-3">
+                                    <ThumbsUp className="w-3 h-3 mr-1" /> Approve
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleStatusChange(change.change_id, 'rejected')} className="rounded-full text-red-500 border-red-500 text-xs h-7 px-3">
+                                    <ThumbsDown className="w-3 h-3 mr-1" /> Reject
+                                  </Button>
+                                </>
+                              )}
+                              {change.status === 'approved' && (
+                                <Button size="sm" onClick={() => handleStatusChange(change.change_id, 'implemented')} className="rounded-full bg-blue-500 text-white text-xs h-7 px-3">
+                                  <Rocket className="w-3 h-3 mr-1" /> Implement
+                                </Button>
+                              )}
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 h-7 w-7 p-0"><Trash2 className="w-3.5 h-3.5" /></Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Change Request?</AlertDialogTitle>
+                                    <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDelete(change.change_id)} className="bg-red-500">Delete</AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
