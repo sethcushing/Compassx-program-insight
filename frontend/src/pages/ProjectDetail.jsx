@@ -17,7 +17,8 @@ import {
   ArrowLeft, Target, ListTodo, BookOpen, Calendar, Clock, AlertTriangle,
   CheckCircle2, Circle, Play, Pause, Plus, Edit2, Trash2,
   Sparkles, TrendingUp, ShieldAlert, X, Users, FileText, GitBranch, 
-  CheckSquare, XSquare, ThumbsUp, ThumbsDown, FileCheck, Rocket
+  CheckSquare, XSquare, ThumbsUp, ThumbsDown, FileCheck, Rocket,
+  Download, ClipboardList
 } from 'lucide-react';
 
 // ============ WEEKLY UPDATES COMPONENT ============
@@ -840,6 +841,208 @@ const ChangeManagementSection = ({ projectId }) => {
   );
 };
 
+// ============ 4-BLOCKER REPORT COMPONENT ============
+const FourBlockerSection = ({ projectId, projectName }) => {
+  const [report, setReport] = useState({ accomplished: [''], roadblocks: [''], upcoming: [''], needs_asks: [''] });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    loadReport();
+    loadHistory();
+  }, [projectId]);
+
+  const loadReport = async () => {
+    try {
+      const res = await axios.get(`${API}/projects/${projectId}/four-blocker`, { withCredentials: true });
+      const data = res.data;
+      setReport({
+        accomplished: data.accomplished?.length > 0 ? data.accomplished : [''],
+        roadblocks: data.roadblocks?.length > 0 ? data.roadblocks : [''],
+        upcoming: data.upcoming?.length > 0 ? data.upcoming : [''],
+        needs_asks: data.needs_asks?.length > 0 ? data.needs_asks : [''],
+        report_date: data.report_date
+      });
+    } catch (err) {
+      console.error('Error loading 4-blocker:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadHistory = async () => {
+    try {
+      const res = await axios.get(`${API}/projects/${projectId}/four-blocker/history`, { withCredentials: true });
+      setHistory(res.data);
+    } catch (err) { console.error(err); }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        accomplished: report.accomplished.filter(i => i.trim()),
+        roadblocks: report.roadblocks.filter(i => i.trim()),
+        upcoming: report.upcoming.filter(i => i.trim()),
+        needs_asks: report.needs_asks.filter(i => i.trim()),
+      };
+      await axios.post(`${API}/projects/${projectId}/four-blocker`, payload, { withCredentials: true });
+      toast.success('4-Blocker report saved');
+      loadHistory();
+    } catch (err) {
+      toast.error('Failed to save report');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const response = await axios.get(`${API}/projects/${projectId}/four-blocker/export`, {
+        withCredentials: true,
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const safeName = projectName.replace(/\s+/g, '_');
+      link.setAttribute('download', `4Blocker_${safeName}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('PDF exported');
+    } catch (err) {
+      toast.error('Failed to export PDF. Please save the report first.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const updateItem = (quadrant, index, value) => {
+    setReport(prev => {
+      const items = [...prev[quadrant]];
+      items[index] = value;
+      return { ...prev, [quadrant]: items };
+    });
+  };
+
+  const addItem = (quadrant) => {
+    setReport(prev => ({ ...prev, [quadrant]: [...prev[quadrant], ''] }));
+  };
+
+  const removeItem = (quadrant, index) => {
+    setReport(prev => {
+      const items = prev[quadrant].filter((_, i) => i !== index);
+      return { ...prev, [quadrant]: items.length > 0 ? items : [''] };
+    });
+  };
+
+  const loadFromHistory = (h) => {
+    setReport({
+      accomplished: h.accomplished?.length > 0 ? h.accomplished : [''],
+      roadblocks: h.roadblocks?.length > 0 ? h.roadblocks : [''],
+      upcoming: h.upcoming?.length > 0 ? h.upcoming : [''],
+      needs_asks: h.needs_asks?.length > 0 ? h.needs_asks : [''],
+      report_date: h.report_date
+    });
+    setShowHistory(false);
+    toast.success(`Loaded report from ${h.report_date}`);
+  };
+
+  const quadrants = [
+    { key: 'accomplished', title: "What's Been Accomplished", color: 'emerald', icon: CheckCircle2 },
+    { key: 'roadblocks', title: 'Roadblocks', color: 'red', icon: AlertTriangle },
+    { key: 'upcoming', title: 'Upcoming', color: 'blue', icon: Calendar },
+    { key: 'needs_asks', title: 'Needs / Asks', color: 'amber', icon: ClipboardList },
+  ];
+
+  const colorMap = {
+    emerald: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-600', header: 'bg-emerald-500' },
+    red: { bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-600', header: 'bg-red-500' },
+    blue: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-600', header: 'bg-blue-500' },
+    amber: { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-600', header: 'bg-amber-500' },
+  };
+
+  if (loading) return <div className="text-center py-8 text-slate-500">Loading 4-Blocker...</div>;
+
+  return (
+    <div data-testid="four-blocker-section">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">4-BLOCKER REPORT</h3>
+        <div className="flex items-center gap-2">
+          {history.length > 0 && (
+            <Button variant="outline" size="sm" className="rounded-full" onClick={() => setShowHistory(!showHistory)} data-testid="four-blocker-history-btn">
+              <Clock className="w-4 h-4 mr-1" /> History ({history.length})
+            </Button>
+          )}
+          <Button size="sm" onClick={handleSave} disabled={saving} className="rounded-full bg-blue-600 text-white" data-testid="four-blocker-save-btn">
+            {saving ? 'Saving...' : 'Save Report'}
+          </Button>
+          <Button size="sm" onClick={handleExport} disabled={exporting} className="rounded-full bg-slate-800 text-white" data-testid="four-blocker-export-btn">
+            <Download className="w-4 h-4 mr-1" /> {exporting ? 'Exporting...' : 'Export PDF'}
+          </Button>
+        </div>
+      </div>
+
+      {showHistory && history.length > 0 && (
+        <div className="glass-card p-4 mb-4 max-h-40 overflow-y-auto">
+          <h4 className="text-xs font-bold uppercase text-slate-400 mb-2">Previous Reports</h4>
+          <div className="space-y-1">
+            {history.map((h, i) => (
+              <button key={i} onClick={() => loadFromHistory(h)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 text-sm flex items-center justify-between">
+                <span className="text-slate-700 dark:text-slate-300">{h.report_date}</span>
+                <span className="text-xs text-slate-400">{h.accomplished?.length || 0} items</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {quadrants.map((q) => {
+          const colors = colorMap[q.color];
+          const Icon = q.icon;
+          return (
+            <div key={q.key} className={`rounded-xl border ${colors.border} overflow-hidden`} data-testid={`four-blocker-${q.key}`}>
+              <div className={`${colors.header} px-4 py-2.5 flex items-center gap-2`}>
+                <Icon className="w-4 h-4 text-white" />
+                <span className="text-white font-semibold text-sm">{q.title}</span>
+              </div>
+              <div className={`${colors.bg} p-4 space-y-2`}>
+                {report[q.key].map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-2">
+                    <span className="text-slate-400 mt-2 text-xs font-mono">{idx + 1}.</span>
+                    <Input
+                      value={item}
+                      onChange={(e) => updateItem(q.key, idx, e.target.value)}
+                      placeholder={`Add ${q.title.toLowerCase()} item...`}
+                      className="rounded-lg bg-white dark:bg-slate-900 text-sm flex-1"
+                      data-testid={`four-blocker-${q.key}-input-${idx}`}
+                    />
+                    {report[q.key].length > 1 && (
+                      <Button variant="ghost" size="sm" onClick={() => removeItem(q.key, idx)} className="text-slate-400 hover:text-red-500 h-9 w-9 p-0 flex-shrink-0">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button variant="ghost" size="sm" onClick={() => addItem(q.key)} className={`${colors.text} text-xs mt-1`} data-testid={`four-blocker-${q.key}-add`}>
+                  <Plus className="w-3 h-3 mr-1" /> Add Item
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const ProjectDetail = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -1364,6 +1567,7 @@ const ProjectDetail = () => {
             <TabsTrigger value="stories" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Stories ({project.stories?.length || 0})</TabsTrigger>
             <TabsTrigger value="raid" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">RAID Log</TabsTrigger>
             <TabsTrigger value="changes" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Changes</TabsTrigger>
+            <TabsTrigger value="four-blocker" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="four-blocker-tab">4-Blocker</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -1636,6 +1840,11 @@ const ProjectDetail = () => {
           {/* Change Management Tab */}
           <TabsContent value="changes" className="space-y-4">
             <ChangeManagementSection projectId={projectId} />
+          </TabsContent>
+
+          {/* 4-Blocker Tab */}
+          <TabsContent value="four-blocker" className="space-y-4">
+            <FourBlockerSection projectId={projectId} projectName={project.name} />
           </TabsContent>
         </Tabs>
 

@@ -352,6 +352,26 @@ class ChangeRequestUpdate(BaseModel):
     implementation_date: Optional[str] = None
     rollback_plan: Optional[str] = None
 
+# ================== 4-BLOCKER REPORT MODELS ==================
+
+class FourBlockerReport(BaseModel):
+    report_id: str = Field(default_factory=lambda: f"4b_{uuid.uuid4().hex[:12]}")
+    project_id: str
+    accomplished: List[str] = []
+    roadblocks: List[str] = []
+    upcoming: List[str] = []
+    needs_asks: List[str] = []
+    report_date: str = Field(default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class FourBlockerCreate(BaseModel):
+    accomplished: List[str] = []
+    roadblocks: List[str] = []
+    upcoming: List[str] = []
+    needs_asks: List[str] = []
+    report_date: Optional[str] = None
+
 # ================== AUTH HELPERS ==================
 
 async def get_current_user(request: Request) -> User:
@@ -1516,6 +1536,125 @@ async def get_change_management_dashboard(user: User = Depends(get_current_user)
         "pending_approval": pending_approval,
         "recent_requests": sorted(all_requests, key=lambda x: x.get("created_at", ""), reverse=True)[:10]
     }
+
+# ================== 4-BLOCKER REPORT ROUTES ==================
+
+@api_router.get("/projects/{project_id}/four-blocker")
+async def get_four_blocker(project_id: str, user: User = Depends(get_current_user)):
+    """Get the latest 4-blocker report for a project"""
+    report = await db.four_blocker_reports.find_one(
+        {"project_id": project_id}, {"_id": 0}, sort=[("created_at", -1)]
+    )
+    return report or {"project_id": project_id, "accomplished": [], "roadblocks": [], "upcoming": [], "needs_asks": [], "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
+
+@api_router.get("/projects/{project_id}/four-blocker/history")
+async def get_four_blocker_history(project_id: str, user: User = Depends(get_current_user)):
+    """Get all 4-blocker reports for a project"""
+    reports = await db.four_blocker_reports.find(
+        {"project_id": project_id}, {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    return reports
+
+@api_router.post("/projects/{project_id}/four-blocker")
+async def save_four_blocker(project_id: str, data: FourBlockerCreate, user: User = Depends(get_current_user)):
+    """Save a 4-blocker report for a project"""
+    report = FourBlockerReport(
+        project_id=project_id,
+        accomplished=data.accomplished,
+        roadblocks=data.roadblocks,
+        upcoming=data.upcoming,
+        needs_asks=data.needs_asks,
+        report_date=data.report_date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    )
+    await db.four_blocker_reports.insert_one(report.dict())
+    result = report.dict()
+    result.pop("_id", None)
+    return result
+
+@api_router.get("/projects/{project_id}/four-blocker/export")
+async def export_four_blocker_pdf(project_id: str, user: User = Depends(get_current_user)):
+    """Export the latest 4-blocker report as PDF"""
+    from fpdf import FPDF
+    import io
+
+    project = await db.projects.find_one({"project_id": project_id}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    report = await db.four_blocker_reports.find_one(
+        {"project_id": project_id}, {"_id": 0}, sort=[("created_at", -1)]
+    )
+    if not report:
+        raise HTTPException(status_code=404, detail="No 4-blocker report found. Please save one first.")
+
+    pdf = FPDF(orientation='L', unit='mm', format='A4')
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=False)
+
+    page_w = 297
+    page_h = 210
+    margin = 10
+    content_w = page_w - 2 * margin
+    header_h = 22
+    quadrant_w = content_w / 2
+    quadrant_h = (page_h - 2 * margin - header_h - 4) / 2
+
+    # Header background
+    pdf.set_fill_color(30, 64, 175)
+    pdf.rect(margin, margin, content_w, header_h, 'F')
+    pdf.set_font('Helvetica', 'B', 16)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_xy(margin + 5, margin + 2)
+    pdf.cell(0, 10, f"4-Blocker: {project['name']}", ln=True)
+    pdf.set_font('Helvetica', '', 9)
+    pdf.set_xy(margin + 5, margin + 12)
+    pdf.cell(0, 6, f"Report Date: {report.get('report_date', 'N/A')}    |    Generated: {datetime.now(timezone.utc).strftime('%B %d, %Y')}")
+
+    top_y = margin + header_h + 2
+    gap = 2
+
+    quadrants = [
+        {"title": "WHAT'S BEEN ACCOMPLISHED", "items": report.get("accomplished", []), "color": (22, 163, 74), "x": margin, "y": top_y},
+        {"title": "ROADBLOCKS", "items": report.get("roadblocks", []), "color": (220, 38, 38), "x": margin + quadrant_w + gap, "y": top_y},
+        {"title": "UPCOMING", "items": report.get("upcoming", []), "color": (37, 99, 235), "x": margin, "y": top_y + quadrant_h + gap},
+        {"title": "NEEDS / ASKS", "items": report.get("needs_asks", []), "color": (217, 119, 6), "x": margin + quadrant_w + gap, "y": top_y + quadrant_h + gap},
+    ]
+
+    for q in quadrants:
+        r, g, b = q["color"]
+        # Quadrant header bar
+        pdf.set_fill_color(r, g, b)
+        pdf.rect(q["x"], q["y"], quadrant_w, 8, 'F')
+        pdf.set_font('Helvetica', 'B', 9)
+        pdf.set_text_color(255, 255, 255)
+        pdf.set_xy(q["x"] + 3, q["y"] + 1)
+        pdf.cell(quadrant_w - 6, 6, q["title"])
+
+        # Quadrant body
+        body_y = q["y"] + 8
+        body_h = quadrant_h - 8
+        pdf.set_draw_color(r, g, b)
+        pdf.rect(q["x"], body_y, quadrant_w, body_h, 'D')
+
+        pdf.set_font('Helvetica', '', 9)
+        pdf.set_text_color(30, 30, 30)
+        item_y = body_y + 3
+        for item in q["items"]:
+            if item_y + 5 > q["y"] + quadrant_h - 2:
+                break
+            pdf.set_xy(q["x"] + 4, item_y)
+            pdf.cell(3, 4, "-")
+            pdf.set_xy(q["x"] + 8, item_y)
+            pdf.multi_cell(quadrant_w - 12, 4.5, item)
+            item_y = pdf.get_y() + 1
+
+    pdf_bytes = pdf.output()
+    safe_name = project['name'].replace(' ', '_').replace('/', '-')
+    return Response(
+        content=bytes(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="4Blocker_{safe_name}_{report.get("report_date","")}.pdf"'}
+    )
 
 # ================== SEED DATA ==================
 

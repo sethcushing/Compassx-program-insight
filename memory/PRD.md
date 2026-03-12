@@ -1,90 +1,55 @@
 # CompassX - AI Project Intelligence Platform
 
-## Deployment Ready
-
-### Files Created for Koyeb Deployment
-- `Dockerfile` - Multi-stage build (Node + Python)
-- `.dockerignore` - Excludes unnecessary files
-- `DEPLOYMENT.md` - Complete deployment guide
-
-### MongoDB Production
-```
-Connection: mongodb+srv://sethcushing:compassx@compassxprograminsight.htuibk0.mongodb.net/?appName=CompassXProgramInsight
-Database: compassx_prod
-```
-
-### Koyeb Environment Variables
-| Variable | Value |
-|----------|-------|
-| MONGO_URL | mongodb+srv://sethcushing:compassx@compassxprograminsight.htuibk0.mongodb.net/?appName=CompassXProgramInsight |
-| DB_NAME | compassx_prod |
-| APP_URL | https://your-app.koyeb.app |
-
-### Architecture
-```
-Koyeb Container (Port 8000)
-├── Nginx (static files + reverse proxy)
-│   ├── / → React frontend
-│   └── /api/* → FastAPI backend
-└── FastAPI (Port 8001)
-    └── MongoDB Atlas
-```
-
----
-
-## Team & Projects
+## Product Overview
+AI-native project management platform with glassmorphism UI. No authentication required (public app).
 
 ### Team Members
-- Paddy, Seth, Brian, Ashley, Fifi, Charlene, Sandeep
+Paddy, Seth, Brian, Ashley, Fifi, Charlene, Sandeep
 
 ### Projects
-- BOM Grid v1.0 (Fifi)
-- Digital Intake Co-Pilot (Ashley)
-- CPQ Reimagined (Seth)
-- Code Red Tracker (Seth)
-- Change Management Transformation (Charlene)
+BOM Grid v1.0, Digital Intake Co-Pilot, CPQ Reimagined, Code Red Tracker, Change Management Transformation
+
+## Architecture
+- **Frontend**: React + TailwindCSS + Shadcn/UI (port 3000)
+- **Backend**: FastAPI + MongoDB via Motor (port 8001)
+- **Deployment**: Docker + Nginx → Koyeb
 
 ## Features Implemented
-- Project Management with Milestones, Stories
+- Project CRUD with milestones, stories, sprints
 - RAID Log (Risks, Issues, Action Items, Decisions)
-- Weekly Updates tracking
-- Change Management with approval workflow
-- Sprint Board (Kanban) with All Projects view
-- Dashboard Quick Access (Milestones, Risks, Issues, Decisions, Action Items)
-- AI Copilot (configured, not yet active)
+- Weekly Updates with latest-highlighted + rolling scroll
+- Change Management dashboard with approve/reject workflow
+- Sprint Board with "All Projects" view + project filter
+- Dashboard Quick Access (cross-project Milestones, RAID items)
+- **4-Blocker Reports** — editable quadrants (Accomplished / Roadblocks / Upcoming / Needs-Asks) with PDF export and version history
+- Sidebar: Dashboard, All Projects, Sprint Board, Resources, Program View, Change Mgmt, AI Creator, AI Copilot
 
-## What's Been Implemented
+## Key API Endpoints
+- `/api/projects`, `/api/stories`, `/api/sprints`
+- `/api/projects/{id}/weekly-updates`
+- `/api/projects/{id}/raid-items`
+- `/api/projects/{id}/change-requests`
+- `/api/projects/{id}/four-blocker` (GET/POST)
+- `/api/projects/{id}/four-blocker/history` (GET)
+- `/api/projects/{id}/four-blocker/export` (GET → PDF)
+- `/api/dashboard/quick-access`
+- `/api/stories/all`
+- `/api/change-management/dashboard`
 
-### Session 1 (Previous)
-- Core CRUD: Projects, Stories, Sprints, Milestones, Tasks, Risks
-- Weekly Updates, RAID Log, Change Management features
-- Custom seed data for projects and people
-- Authentication fully removed (app is public)
-- Dockerfile & deployment docs for Koyeb
-- UI branding updates
-
-### Session 2 (Current - Feb 2026)
-- **Docker Build Fix**: Dockerfile now uses `yarn install` directly (no frozen-lockfile, no npm fallback) to handle React 19 peer dep conflicts with react-day-picker
-- **Dashboard Quick Access**: New section with tabbed view of Milestones (30), Risks (15), Issues (15), Decisions (20), Action Items (20) across all projects. Clickable rows navigate to project detail.
-- **Sprint Board All Projects**: Defaults to showing stories from all projects with project names on cards. Dropdown filter for specific project.
-- **Project Detail Overview Cleanup**: Removed Project Phases section. Latest weekly update highlighted with "Latest" badge. Previous updates in scrollable container.
-
-### New Backend Endpoints Added
-- `GET /api/dashboard/quick-access` - Cross-project milestones + RAID items
-- `GET /api/stories/all` - Stories from all projects with project_name
+## Deployment Status
+- Dockerfile uses `yarn install` (handles React 19 peer dep conflicts)
+- Pending: User needs to Save to GitHub and trigger Koyeb build
 
 ## Prioritized Backlog
 ### P1
-- Refactor `server.py` into separate route files
-- Break up `ProjectDetail.jsx` into smaller components
-- Comprehensive E2E test execution
+- Refactor server.py into routers
+- Refactor ProjectDetail.jsx into smaller components
+- E2E test suite
 
 ### P2
-- AI Project Creator (generate project plans from prompt)
-- AI Copilot enhancements
+- AI Project Creator, AI Copilot enhancements
 - Resource Manager page
 
 ### P3
-- AI-powered predictive features
-- GitHub/Jira integrations
+- AI predictive features, GitHub/Jira integrations
 - Automated reporting center
