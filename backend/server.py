@@ -567,6 +567,10 @@ async def delete_project(project_id: str, user: User = Depends(get_current_user)
     await db.stories.delete_many({"project_id": project_id})
     await db.risks.delete_many({"project_id": project_id})
     await db.sprints.delete_many({"project_id": project_id})
+    await db.raid_items.delete_many({"project_id": project_id})
+    await db.change_requests.delete_many({"project_id": project_id})
+    await db.weekly_updates.delete_many({"project_id": project_id})
+    await db.four_blocker_reports.delete_many({"project_id": project_id})
     
     return {"message": "Project deleted"}
 
