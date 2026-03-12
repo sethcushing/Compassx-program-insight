@@ -21,242 +21,6 @@ import {
   Download, ClipboardList
 } from 'lucide-react';
 
-// ============ WEEKLY UPDATES COMPONENT ============
-const WeeklyUpdatesSection = ({ projectId }) => {
-  const [updates, setUpdates] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [newUpdate, setNewUpdate] = useState({ week_start: '', whats_going_well: '', roadblocks: '' });
-  const [editingUpdate, setEditingUpdate] = useState(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-
-  useEffect(() => {
-    loadUpdates();
-  }, [projectId]);
-
-  const loadUpdates = async () => {
-    try {
-      const res = await axios.get(`${API}/weekly-updates?project_id=${projectId}`, { withCredentials: true });
-      setUpdates(res.data);
-    } catch (err) {
-      console.error('Error loading weekly updates:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAdd = async () => {
-    if (!newUpdate.week_start) {
-      toast.error('Please select a week');
-      return;
-    }
-    try {
-      await axios.post(`${API}/weekly-updates`, { project_id: projectId, ...newUpdate }, { withCredentials: true });
-      toast.success('Weekly update added');
-      setIsAddOpen(false);
-      setNewUpdate({ week_start: '', whats_going_well: '', roadblocks: '' });
-      loadUpdates();
-    } catch (err) {
-      toast.error('Failed to add update');
-    }
-  };
-
-  const handleEdit = async () => {
-    try {
-      await axios.patch(`${API}/weekly-updates/${editingUpdate.update_id}`, {
-        whats_going_well: editingUpdate.whats_going_well,
-        roadblocks: editingUpdate.roadblocks
-      }, { withCredentials: true });
-      toast.success('Update saved');
-      setIsEditOpen(false);
-      loadUpdates();
-    } catch (err) {
-      toast.error('Failed to save update');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`${API}/weekly-updates/${id}`, { withCredentials: true });
-      toast.success('Update deleted');
-      loadUpdates();
-    } catch (err) {
-      toast.error('Failed to delete update');
-    }
-  };
-
-  const formatWeek = (dateStr) => {
-    const d = new Date(dateStr);
-    return `Week of ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-  };
-
-  return (
-    <div className="glass-card p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">WEEKLY UPDATES</h3>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="rounded-full bg-blue-600 text-white" data-testid="add-weekly-update-btn">
-              <Plus className="w-4 h-4 mr-2" /> Add Update
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader><DialogTitle>Add Weekly Update</DialogTitle></DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Week Starting *</label>
-                <Input type="date" value={newUpdate.week_start} onChange={(e) => setNewUpdate(p => ({ ...p, week_start: e.target.value }))} className="rounded-xl" />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> What's Going Well
-                </label>
-                <Textarea value={newUpdate.whats_going_well} onChange={(e) => setNewUpdate(p => ({ ...p, whats_going_well: e.target.value }))} placeholder="Wins, progress, positive updates..." className="rounded-xl min-h-[100px]" />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" /> Roadblocks / Issues
-                </label>
-                <Textarea value={newUpdate.roadblocks} onChange={(e) => setNewUpdate(p => ({ ...p, roadblocks: e.target.value }))} placeholder="Blockers, risks, concerns..." className="rounded-xl min-h-[100px]" />
-              </div>
-              <Button onClick={handleAdd} className="w-full rounded-full bg-blue-600">Add Update</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-8 text-slate-500">Loading updates...</div>
-      ) : updates.length === 0 ? (
-        <div className="text-center py-8">
-          <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500">No weekly updates yet. Start tracking your project health!</p>
-        </div>
-      ) : (
-        <div>
-          {/* Latest Update - Highlighted */}
-          <div className="border-2 border-blue-200 dark:border-blue-500/30 rounded-xl p-5 mb-4 bg-blue-50/50 dark:bg-blue-500/5" data-testid="latest-weekly-update">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Badge className="bg-blue-500/20 text-blue-600 text-xs">Latest</Badge>
-                <span className="font-semibold text-blue-600">{formatWeek(updates[0].week_start)}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => { setEditingUpdate({...updates[0]}); setIsEditOpen(true); }}>
-                  <Edit2 className="w-4 h-4" />
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Update?</AlertDialogTitle>
-                      <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDelete(updates[0].update_id)} className="bg-red-500">Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm mb-2">
-                  <CheckCircle2 className="w-4 h-4" /> Going Well
-                </div>
-                <p className="text-sm text-slate-700 dark:text-slate-300">{updates[0].whats_going_well || 'No updates'}</p>
-              </div>
-              <div className="bg-amber-50 dark:bg-amber-500/10 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-amber-600 font-medium text-sm mb-2">
-                  <AlertTriangle className="w-4 h-4" /> Roadblocks
-                </div>
-                <p className="text-sm text-slate-700 dark:text-slate-300">{updates[0].roadblocks || 'None reported'}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Previous Updates - Rolling Scroll */}
-          {updates.length > 1 && (
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400 mb-3">Previous Updates</h4>
-              <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1" data-testid="weekly-updates-scroll">
-                {updates.slice(1).map((update) => (
-                  <div key={update.update_id} className="border border-slate-200 dark:border-white/10 rounded-xl p-4 hover:shadow-md transition-all">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-semibold text-blue-600 text-sm">{formatWeek(update.week_start)}</span>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => { setEditingUpdate({...update}); setIsEditOpen(true); }}>
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Update?</AlertDialogTitle>
-                              <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(update.update_id)} className="bg-red-500">Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-lg p-3">
-                        <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm mb-2">
-                          <CheckCircle2 className="w-4 h-4" /> Going Well
-                        </div>
-                        <p className="text-sm text-slate-700 dark:text-slate-300">{update.whats_going_well || 'No updates'}</p>
-                      </div>
-                      <div className="bg-amber-50 dark:bg-amber-500/10 rounded-lg p-3">
-                        <div className="flex items-center gap-2 text-amber-600 font-medium text-sm mb-2">
-                          <AlertTriangle className="w-4 h-4" /> Roadblocks
-                        </div>
-                        <p className="text-sm text-slate-700 dark:text-slate-300">{update.roadblocks || 'None reported'}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Edit Weekly Update</DialogTitle></DialogHeader>
-          {editingUpdate && (
-            <div className="space-y-4 mt-4">
-              <div className="text-sm text-slate-500 font-medium">{formatWeek(editingUpdate.week_start)}</div>
-              <div>
-                <label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> What's Going Well
-                </label>
-                <Textarea value={editingUpdate.whats_going_well || ''} onChange={(e) => setEditingUpdate(p => ({ ...p, whats_going_well: e.target.value }))} className="rounded-xl min-h-[100px]" />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" /> Roadblocks / Issues
-                </label>
-                <Textarea value={editingUpdate.roadblocks || ''} onChange={(e) => setEditingUpdate(p => ({ ...p, roadblocks: e.target.value }))} className="rounded-xl min-h-[100px]" />
-              </div>
-              <Button onClick={handleEdit} className="w-full rounded-full bg-blue-600">Save Changes</Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
 
 // ============ RAID LOG COMPONENT ============
 // RAID = Risks, Issues, Action Items, Decisions
@@ -1567,7 +1331,6 @@ const ProjectDetail = () => {
             <TabsTrigger value="stories" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Stories ({project.stories?.length || 0})</TabsTrigger>
             <TabsTrigger value="raid" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">RAID Log</TabsTrigger>
             <TabsTrigger value="changes" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Changes</TabsTrigger>
-            <TabsTrigger value="four-blocker" className="rounded-lg px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white" data-testid="four-blocker-tab">4-Blocker</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -1594,8 +1357,8 @@ const ProjectDetail = () => {
               </div>
             </div>
 
-            {/* Weekly Updates Section */}
-            <WeeklyUpdatesSection projectId={projectId} />
+            {/* 4-Blocker Report */}
+            <FourBlockerSection projectId={projectId} projectName={project.name} />
           </TabsContent>
 
           {/* Milestones Tab */}
@@ -1840,11 +1603,6 @@ const ProjectDetail = () => {
           {/* Change Management Tab */}
           <TabsContent value="changes" className="space-y-4">
             <ChangeManagementSection projectId={projectId} />
-          </TabsContent>
-
-          {/* 4-Blocker Tab */}
-          <TabsContent value="four-blocker" className="space-y-4">
-            <FourBlockerSection projectId={projectId} projectName={project.name} />
           </TabsContent>
         </Tabs>
 
