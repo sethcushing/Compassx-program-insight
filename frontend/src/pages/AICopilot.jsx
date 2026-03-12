@@ -34,7 +34,7 @@ const AICopilot = () => {
 
 Select a specific project for focused insights, or ask about your entire portfolio. How can I assist you today?`
     }]);
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
