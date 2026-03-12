@@ -407,61 +407,6 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-          {/* Story Points Chart */}
-          <div className="lg:col-span-8 glass-card p-6" data-testid="story-points-chart">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-1">STORY POINTS</h3>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">Total vs Completed</p>
-              </div>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500" />
-                  <span className="text-slate-500">Completed</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500/30" />
-                  <span className="text-slate-500">Total</span>
-                </div>
-              </div>
-            </div>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats?.story_points_data || []}>
-                  <CartesianGrid strokeDasharray="4" stroke="rgba(148, 163, 184, 0.1)" vertical={false} />
-                  <XAxis dataKey="sprint" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="total" fill="rgba(59, 130, 246, 0.3)" radius={[4, 4, 0, 0]} name="Total Points" />
-                  <Bar dataKey="completed" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Completed Points" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Burndown Chart */}
-          <div className="lg:col-span-4 glass-card p-6" data-testid="burndown-chart">
-            <div className="mb-6">
-              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-1">SPRINT BURNDOWN</h3>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">Current Sprint</p>
-            </div>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats?.burndown_data || []}>
-                  <CartesianGrid strokeDasharray="4" stroke="rgba(148, 163, 184, 0.1)" vertical={false} />
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="ideal" stroke="#94a3b8" strokeDasharray="4" fill="none" />
-                  <Area type="monotone" dataKey="remaining" stroke="#3b82f6" fill="rgba(59, 130, 246, 0.2)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
         {/* Quick Access: Milestones, Risks, Issues, Decisions, Action Items */}
         {quickAccess && (
           <div className="glass-card p-6 mb-8" data-testid="quick-access-section">
@@ -634,6 +579,58 @@ const Dashboard = () => {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Charts Row - Story Points & Sprint Burndown */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">
+          <div className="lg:col-span-8 glass-card p-6" data-testid="story-points-chart">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-1">STORY POINTS</h3>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">Total vs Completed</p>
+              </div>
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500" />
+                  <span className="text-slate-500">Completed</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500/30" />
+                  <span className="text-slate-500">Total</span>
+                </div>
+              </div>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats?.story_points_data || []}>
+                  <CartesianGrid strokeDasharray="4" stroke="rgba(148, 163, 184, 0.1)" vertical={false} />
+                  <XAxis dataKey="sprint" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="total" fill="rgba(59, 130, 246, 0.3)" radius={[4, 4, 0, 0]} name="Total Points" />
+                  <Bar dataKey="completed" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Completed Points" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div className="lg:col-span-4 glass-card p-6" data-testid="burndown-chart">
+            <div className="mb-6">
+              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mb-1">SPRINT BURNDOWN</h3>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">Current Sprint</p>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats?.burndown_data || []}>
+                  <CartesianGrid strokeDasharray="4" stroke="rgba(148, 163, 184, 0.1)" vertical={false} />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area type="monotone" dataKey="ideal" stroke="#94a3b8" strokeDasharray="4" fill="none" />
+                  <Area type="monotone" dataKey="remaining" stroke="#3b82f6" fill="rgba(59, 130, 246, 0.2)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       </main>
